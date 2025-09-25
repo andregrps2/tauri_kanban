@@ -13,6 +13,12 @@ export default function ThemeSwitcher() {
     setMounted(true);
   }, []);
 
+  const handleThemeChange = (newTheme: string) => {
+    setTheme(newTheme);
+    // Adicionado para forçar a atualização da página
+    window.location.reload();
+  };
+
   if (!mounted) {
     // Renderiza um placeholder ou nada até que o componente esteja montado no cliente
     return null;
@@ -23,7 +29,7 @@ export default function ThemeSwitcher() {
       <Label>Theme</Label>
       <RadioGroup
         value={theme}
-        onValueChange={setTheme}
+        onValueChange={handleThemeChange}
         className="grid grid-cols-2 md:grid-cols-3 gap-8 pt-2"
       >
         <Label className="[&:has([data-state=checked])>div]:border-primary">
