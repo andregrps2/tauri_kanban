@@ -12,7 +12,7 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
-import type { CardData, LabelData } from "@/lib/types";
+import type { CardData, LabelData, CommentData } from "@/lib/types";
 import { useEffect, useState } from "react";
 import {
   AlertDialog,
@@ -26,7 +26,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { Check, Plus, X } from "lucide-react";
+import { Check, Plus, Send, X } from "lucide-react";
 import { Badge } from "../ui/badge";
 
 const colorClasses = [
@@ -49,6 +49,7 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
   const [editedCard, setEditedCard] = useState<CardData>(card);
   const [newLabelName, setNewLabelName] = useState("");
   const [newLabelColor, setNewLabelColor] = useState(colorClasses[0]);
+  const [newComment, setNewComment] = useState("");
 
   useEffect(() => {
     setEditedCard(card);
@@ -87,9 +88,21 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
     setEditedCard({...editedCard, labels: updatedCardLabels});
   };
 
+  const handleAddComment = () => {
+    if (newComment.trim() === "") return;
+    const comment: CommentData = {
+        id: `comment-${crypto.randomUUID()}`,
+        text: newComment.trim(),
+        timestamp: new Date().toISOString(),
+    };
+    const updatedComments = [...(editedCard.comments || []), comment].sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    setEditedCard({ ...editedCard, comments: updatedComments });
+    setNewComment("");
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[525px]">
         <DialogHeader>
           <DialogTitle>Edit Card</DialogTitle>
         </DialogHeader>
@@ -177,6 +190,43 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
                 </PopoverContent>
               </Popover>
             </div>
+          </div>
+          <hr className="col-span-4" />
+          <div className="grid grid-cols-4 items-start gap-4">
+              <Label className="text-right pt-2">Comments</Label>
+              <div className="col-span-3">
+                  <div className="space-y-2 mb-4 max-h-32 overflow-y-auto pr-2">
+                      {editedCard.comments?.map(comment => (
+                          <div key={comment.id} className="text-sm p-2 bg-muted/50 rounded-md">
+                              <p className="whitespace-pre-wrap">{comment.text}</p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                  {new Date(comment.timestamp).toLocaleString()}
+                              </p>
+                          </div>
+                      ))}
+                      {(!editedCard.comments || editedCard.comments.length === 0) && (
+                          <p className="text-sm text-center text-muted-foreground py-4">No comments yet.</p>
+                      )}
+                  </div>
+                  <div className="flex items-start space-x-2">
+                      <Textarea 
+                          placeholder="Write a comment..." 
+                          value={newComment}
+                          onChange={(e) => setNewComment(e.target.value)}
+                          className="flex-grow"
+                          rows={2}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                              e.preventDefault();
+                              handleAddComment();
+                            }
+                          }}
+                      />
+                      <Button onClick={handleAddComment} size="icon" className="flex-shrink-0 bg-accent text-accent-foreground hover:bg-accent/90">
+                          <Send className="h-4 w-4" />
+                      </Button>
+                  </div>
+              </div>
           </div>
         </div>
         <DialogFooter className="flex justify-between w-full">
