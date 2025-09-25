@@ -149,38 +149,29 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
   const handleAddChecklistItem = async (checklistId: string) => {
     const text = newChecklistItem[checklistId]?.trim();
     if (!text) return;
-
-    // Optimistic UI Update
-    const tempId = `temp-${crypto.randomUUID()}`;
-    const newItem: ChecklistItemData = {
-      id: tempId,
-      text: text,
-      completed: false,
-    };
-
-    const updatedChecklists = editedCard.checklists?.map(c => 
-      c.id === checklistId ? { ...c, items: [...c.items, newItem] } : c
-    );
-    setEditedCard({ ...editedCard, checklists: updatedChecklists });
-    setNewChecklistItem({ ...newChecklistItem, [checklistId]: "" });
-
-    // API Call (fire-and-forget)
+  
     try {
-      await ClickUpService.createChecklistItem(checklistId, text);
-      // Optional: If you need the real ID for subsequent actions before a refresh,
-      // you could find the temp item and update its ID from the response.
-      // For now, we assume a refresh/re-open of the card will sync the correct state.
+      // API Call - wait for the response to get the real ID
+      const createdItem = await ClickUpService.createChecklistItem(checklistId, text);
+      const newItem: ChecklistItemData = {
+        id: createdItem.id, // Use the real ID from the response
+        text: createdItem.name,
+        completed: false,
+      };
+  
+      // Update UI with the real data
+      const updatedChecklists = editedCard.checklists?.map(c =>
+        c.id === checklistId ? { ...c, items: [...c.items, newItem] } : c
+      );
+      setEditedCard({ ...editedCard, checklists: updatedChecklists });
+      setNewChecklistItem({ ...newChecklistItem, [checklistId]: "" });
+  
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Failed to add checklist item to ClickUp",
-        description: "The item was added to the UI but failed to save. Please refresh.",
+        title: "Failed to add checklist item",
+        description: `API Response: ${error.message}`,
       });
-      // Optional: Revert optimistic update on failure
-      const revertedChecklists = editedCard.checklists?.map(c => 
-        c.id === checklistId ? { ...c, items: c.items.filter(i => i.id !== tempId) } : c
-      );
-      setEditedCard({ ...editedCard, checklists: revertedChecklists });
     }
   };
 
