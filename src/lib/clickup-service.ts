@@ -62,28 +62,22 @@ export async function getTasks() {
 // --- Placeholder functions for future implementation ---
 
 export async function createTask(title: string, status: string) {
-  console.log("Creating task:", { title, status });
-  // const { listId } = getCredentials();
-  // return fetchClickUpAPI(`/list/${listId}/task`, {
-  //   method: 'POST',
-  //   body: JSON.stringify({ name: title, status }),
-  // });
-  return Promise.resolve({ id: `new-${Math.random()}`, name: title, status: { status } });
+  const { listId } = getCredentials();
+  return fetchClickUpAPI(`/list/${listId}/task`, {
+    method: 'POST',
+    body: JSON.stringify({ name: title, status }),
+  });
 }
 
 export async function updateTask(taskId: string, data: any) {
-  console.log(`Updating task ${taskId}:`, data);
-  // return fetchClickUpAPI(`/task/${taskId}`, {
-  //   method: 'PUT',
-  //   body: JSON.stringify(data),
-  // });
-   return Promise.resolve({ id: taskId, ...data});
+  return fetchClickUpAPI(`/task/${taskId}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
 }
 
 export async function deleteTask(taskId: string) {
-  console.log(`Deleting task ${taskId}`);
-  // return fetchClickUpAPI(`/task/${taskId}`, {
-  //   method: 'DELETE',
-  // });
-  return Promise.resolve();
+  return fetchClickUpAPI(`/task/${taskId}`, {
+    method: 'DELETE',
+  });
 }
