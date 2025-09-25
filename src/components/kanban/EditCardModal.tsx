@@ -401,15 +401,6 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
           {/* Sidebar Column */}
           <div className="md:col-span-4 space-y-4">
             <div className="space-y-2">
-                <Label htmlFor="dueDate">Due Date</Label>
-                <Input
-                    id="dueDate"
-                    type="date"
-                    value={editedCard.dueDate || ""}
-                    onChange={(e) => setEditedCard({...editedCard, dueDate: e.target.value})}
-                />
-            </div>
-            <div className="space-y-2">
               <Label>Labels</Label>
               <MultiSelect
                 options={allLabels.map(l => ({ value: l.id, label: l.name, color: l.color }))}
