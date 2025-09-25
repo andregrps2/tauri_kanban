@@ -14,22 +14,22 @@ const defaultColumns: ColumnData[] = [
     id: "col-1",
     title: "To Do",
     cards: [
-      { id: "card-1", title: "Design the UI", description: "Create mockups and wireframes in Figma.", labels: [{id: 'label-1', name: 'Design', color: 'bg-purple-500'}], comments: [] },
-      { id: "card-2", title: "Develop the Kanban board component", description: "Use Next.js and shadcn/ui.", labels: [{id: 'label-2', name: 'Dev', color: 'bg-blue-500'}], comments: [] },
+      { id: "card-1", title: "Design the UI", description: "Create mockups and wireframes in Figma.", labels: [{id: 'label-1', name: 'Design', color: 'bg-purple-500'}], comments: [], checklists: [] },
+      { id: "card-2", title: "Develop the Kanban board component", description: "Use Next.js and shadcn/ui.", labels: [{id: 'label-2', name: 'Dev', color: 'bg-blue-500'}], comments: [], checklists: [] },
     ],
   },
   {
     id: "col-2",
     title: "In Progress",
     cards: [
-      { id: "card-3", title: "Implement drag and drop functionality", description: "Use HTML5 Drag and Drop API.", labels: [{id: 'label-2', name: 'Dev', color: 'bg-blue-500'}], comments: [] },
+      { id: "card-3", title: "Implement drag and drop functionality", description: "Use HTML5 Drag and Drop API.", labels: [{id: 'label-2', name: 'Dev', color: 'bg-blue-500'}], comments: [], checklists: [] },
     ],
   },
   {
     id: "col-3",
     title: "Done",
     cards: [
-       { id: "card-4", title: "Set up Next.js project", description: "Initialize with create-next-app.", labels: [], comments: [] },
+       { id: "card-4", title: "Set up Next.js project", description: "Initialize with create-next-app.", labels: [], comments: [], checklists: [] },
     ],
   },
 ];
@@ -100,6 +100,7 @@ export default function KanbanBoard() {
       description: "",
       labels: [],
       comments: [],
+      checklists: [],
     };
     const newColumns = columns.map((col) => {
       if (col.id === columnId) {

@@ -4,7 +4,7 @@ import type { CardData } from "@/lib/types";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { cn } from "@/lib/utils";
-import { MessageSquare } from "lucide-react";
+import { CheckSquare, MessageSquare } from "lucide-react";
 
 interface KanbanCardProps {
   card: CardData;
@@ -16,6 +16,11 @@ interface KanbanCardProps {
 
 export default function KanbanCard({ card, onDragStart, onDragEnd, onClick, className }: KanbanCardProps) {
   const commentCount = card.comments?.length || 0;
+
+  const allChecklistItems = card.checklists?.flatMap(c => c.items) || [];
+  const completedChecklistItems = allChecklistItems.filter(i => i.completed).length;
+  const totalChecklistItems = allChecklistItems.length;
+  const hasChecklistItems = totalChecklistItems > 0;
   
   return (
     <Card
@@ -42,12 +47,20 @@ export default function KanbanCard({ card, onDragStart, onDragEnd, onClick, clas
           <p className="text-sm text-muted-foreground truncate">{card.description}</p>
         )}
       </CardContent>
-      {(commentCount > 0) && (
-        <CardFooter className="px-4 pb-2 pt-0">
-          <div className="flex items-center text-xs text-muted-foreground ml-auto">
-            <span>{commentCount}</span>
-            <MessageSquare className="h-4 w-4 ml-1" />
-          </div>
+      {(commentCount > 0 || hasChecklistItems) && (
+        <CardFooter className="px-4 pb-2 pt-0 flex justify-end items-center gap-3">
+          {hasChecklistItems && (
+            <div className="flex items-center text-xs text-muted-foreground">
+              <span>{completedChecklistItems}/{totalChecklistItems}</span>
+              <CheckSquare className="h-4 w-4 ml-1" />
+            </div>
+          )}
+          {commentCount > 0 && (
+            <div className="flex items-center text-xs text-muted-foreground">
+              <span>{commentCount}</span>
+              <MessageSquare className="h-4 w-4 ml-1" />
+            </div>
+          )}
         </CardFooter>
       )}
     </Card>

@@ -10,6 +10,18 @@ export interface CommentData {
   timestamp: string;
 }
 
+export interface ChecklistItemData {
+  id: string;
+  text: string;
+  completed: boolean;
+}
+
+export interface ChecklistData {
+  id: string;
+  title: string;
+  items: ChecklistItemData[];
+}
+
 export interface CardData {
   id: string;
   title: string;
@@ -17,6 +29,7 @@ export interface CardData {
   dueDate?: string;
   labels?: LabelData[];
   comments?: CommentData[];
+  checklists?: ChecklistData[];
 }
 
 export interface ColumnData {
