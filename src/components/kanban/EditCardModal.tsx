@@ -283,11 +283,11 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
               </TabsContent>
               <TabsContent value="checklists">
                 <div className="space-y-4 max-h-60 overflow-y-auto pr-2 mt-2">
-                  {editedCard.checklists?.map((checklist, index) => {
+                  {editedCard.checklists?.map((checklist) => {
                     const completedItems = checklist.items.filter(i => i.completed).length;
                     const progress = checklist.items.length > 0 ? (completedItems / checklist.items.length) * 100 : 0;
                     return (
-                      <div key={checklist.id || `checklist-${index}`} className="space-y-2">
+                      <div key={checklist.id} className="space-y-2">
                         <div className="flex justify-between items-center">
                           <h4 className="font-semibold">{checklist.title}</h4>
                           <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleDeleteChecklist(checklist.id)}>
@@ -299,8 +299,8 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
                           <Progress value={progress} className="w-full h-2"/>
                         </div>
                         <div className="space-y-1 pl-2">
-                          {checklist.items.map((item, itemIndex) => (
-                            <div key={item.id || `item-${itemIndex}`} className="flex items-center gap-2 group">
+                          {checklist.items.map((item) => (
+                            <div key={item.id} className="flex items-center gap-2 group">
                               <Checkbox id={item.id} checked={item.completed} onCheckedChange={() => handleToggleChecklistItem(checklist.id, item.id, item.completed)} />
                               <label htmlFor={item.id} className="flex-grow text-sm data-[completed=true]:line-through data-[completed=true]:text-muted-foreground" data-completed={item.completed}>{item.text}</label>
                               <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={() => handleDeleteChecklistItem(checklist.id, item.id)}>
