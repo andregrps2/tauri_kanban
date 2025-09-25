@@ -83,7 +83,7 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
                 text: i.name,
                 completed: i.resolved,
                 orderindex: i.orderindex,
-            })).sort((a, b) => a.orderindex - b.orderindex),
+            })),
         }));
         const updatedCard = { ...editedCard, checklists: formattedChecklists };
         setEditedCard(updatedCard);
@@ -125,7 +125,7 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
   const handleAddComment = async () => {
     if (newComment.trim() === "") return;
     try {
-      const createdComment = await ClickUpService.createTaskComment(editedCard.id, newComment.trim());
+      await ClickUpService.createTaskComment(editedCard.id, newComment.trim());
       // After adding, we need to refresh to get the full comment object with user details
       const comments = await ClickUpService.getTaskComments(editedCard.id);
       const formattedComments = comments.map((c: any) => ({
@@ -207,7 +207,7 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
     setPendingItems({}); // Clear the queue
     await refreshTaskState(); // Refresh with all new items and correct IDs
 
-  }, [pendingItems, editedCard.checklists, toast]);
+  }, [pendingItems, editedCard.checklists, toast, refreshTaskState]);
   
   const handleAddChecklistItem = (checklistId: string) => {
     const text = newChecklistItem[checklistId]?.trim();
@@ -454,12 +454,10 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
                               </AvatarFallback>
                           </Avatar>
                           <div className="flex-1">
-                              <div className="flex items-baseline space-x-2">
-                                <p className="font-semibold text-sm">{comment.user.username}</p>
-                                <p className="text-xs text-muted-foreground">
-                                    {new Date(comment.timestamp).toLocaleString()}
-                                </p>
-                              </div>
+                              <p className="font-semibold text-sm">{comment.user.username}</p>
+                              <p className="text-xs text-muted-foreground">
+                                  {new Date(comment.timestamp).toLocaleString()}
+                              </p>
                               <p className="text-sm whitespace-pre-wrap mt-1">{comment.text}</p>
                           </div>
                       </div>
