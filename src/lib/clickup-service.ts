@@ -71,6 +71,7 @@ export async function getTasks() {
 
 // Get a single task's details
 export async function getTask(taskId: string) {
+    // Ensure we also fetch attachments
     return fetchClickUpAPI(`/task/${taskId}?subtasks=true&include_checklists=true`);
 }
 

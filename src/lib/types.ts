@@ -31,15 +31,21 @@ export interface ChecklistData {
   items: ChecklistItemData[];
 }
 
+export interface AttachmentData {
+    id: string;
+    url: string;
+    thumbnail_small?: string;
+}
+
 export interface CardData {
   id: string;
   title: string;
   description?: string;
-  dueDate?: string;
   labels?: LabelData[];
   comments?: CommentData[];
   checklists?: ChecklistData[];
   statusId?: string; // To know which column it belongs to
+  attachments?: AttachmentData[];
 }
 
 export interface ColumnData {

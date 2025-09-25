@@ -1,6 +1,6 @@
 "use client";
 
-import type { ColumnData, CardData, LabelData } from "@/lib/types";
+import type { ColumnData, CardData, LabelData, AttachmentData } from "@/lib/types";
 import { useEffect, useState } from "react";
 import KanbanColumn from "./KanbanColumn";
 import EditCardModal from "./EditCardModal";
@@ -39,7 +39,6 @@ export default function KanbanBoard() {
           title: task.name,
           description: task.description || "",
           statusId: task.status.id,
-          dueDate: task.due_date ? new Date(parseInt(task.due_date)).toISOString().split('T')[0] : undefined,
           labels: task.tags.map((tag: any) => ({
             id: tag.name, // ClickUp tags don't have a stable ID via this endpoint
             name: tag.name,
@@ -55,6 +54,11 @@ export default function KanbanBoard() {
               completed: i.resolved,
               orderindex: i.orderindex,
             })).sort((a: any, b: any) => a.orderindex - b.orderindex),
+          })),
+          attachments: (task.attachments || []).map((att: any) => ({
+            id: att.id,
+            url: att.url,
+            thumbnail_small: att.thumbnail_small,
           })),
         }));
 
@@ -122,11 +126,18 @@ export default function KanbanBoard() {
         })).sort((a, b) => a.orderindex - b.orderindex),
       }));
 
+      const formattedAttachments: AttachmentData[] = (taskDetails.attachments || []).map((att: any) => ({
+        id: att.id,
+        url: att.url,
+        thumbnail_small: att.thumbnail_small,
+      }));
+
       const updatedCard: CardData = { 
         ...card, 
         comments: formattedComments,
         checklists: formattedChecklists,
         description: taskDetails.description || "",
+        attachments: formattedAttachments,
       };
       
       // Update the modal with the full, fresh data
@@ -170,7 +181,6 @@ export default function KanbanBoard() {
         title: newTask.name,
         statusId: newTask.status.id,
         description: newTask.description || "",
-        dueDate: newTask.due_date ? new Date(parseInt(newTask.due_date)).toISOString().split('T')[0] : undefined,
         labels: (newTask.tags || []).map((tag: any) => ({
           id: tag.name,
           name: tag.name,
@@ -178,6 +188,7 @@ export default function KanbanBoard() {
         })),
         comments: [], // Comments are not returned on task creation
         checklists: (newTask.checklists || []),
+        attachments: (newTask.attachments || []),
       };
       const newColumns = columns.map((col) => {
         if (col.id === columnId) {
@@ -215,7 +226,6 @@ export default function KanbanBoard() {
       await ClickUpService.updateTask(updatedCard.id, {
         name: updatedCard.title,
         description: updatedCard.description,
-        due_date: updatedCard.dueDate ? new Date(updatedCard.dueDate).getTime() : null,
       });
       
       // Close modal after all updates

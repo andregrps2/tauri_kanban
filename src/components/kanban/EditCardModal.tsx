@@ -12,7 +12,7 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
-import type { CardData, LabelData, CommentData, ChecklistData, ChecklistItemData, UserData } from "@/lib/types";
+import type { CardData, LabelData, AttachmentData } from "@/lib/types";
 import { useEffect, useState, useRef, useCallback } from "react";
 import {
   AlertDialog,
@@ -34,6 +34,9 @@ import { MultiSelect } from "../ui/multi-select";
 import * as ClickUpService from "@/lib/clickup-service";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import type { ChecklistItemData } from "@/lib/types";
+import Image from "next/image";
+import Link from "next/link";
 
 const colorClasses = [
   "bg-red-500", "bg-orange-500", "bg-yellow-500", "bg-green-500",
@@ -313,7 +316,19 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
   
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-  }
+  };
+
+  const findAttachmentInText = (text: string): AttachmentData | undefined => {
+      if (!text || !editedCard.attachments) return undefined;
+      // Regex to find ![img](attachment_id)
+      const match = text.match(/!\[img\]\(([\w-]+)\)/);
+      if (match && match[1]) {
+          const attachmentId = match[1];
+          return editedCard.attachments.find(att => att.id === attachmentId);
+      }
+      return undefined;
+  };
+
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -443,29 +458,46 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
             </div>
             <div className="space-y-4">
               <Label>Comments</Label>
-              <div ref={commentsContainerRef} className="space-y-3 overflow-y-auto pr-2 border rounded-md p-3 mt-2 max-h-96">
-                  {editedCard.comments?.map(comment => (
-                      <div key={comment.id} className="flex items-start space-x-3">
-                          <Avatar className="h-8 w-8">
-                              <AvatarImage src={comment.user.profilePicture || undefined} alt={comment.user.username} />
-                              <AvatarFallback style={{backgroundColor: comment.user.color}}>
-                                  {getInitials(comment.user.username)}
-                              </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1">
-                              <div>
-                                <span className="font-semibold text-sm">{comment.user.username}</span>
-                                <span className="text-xs text-muted-foreground ml-2">
-                                  {new Date(comment.timestamp).toLocaleString(undefined, {
-                                      year: 'numeric', month: 'numeric', day: 'numeric',
-                                      hour: '2-digit', minute: '2-digit'
-                                  })}
-                                </span>
-                              </div>
-                              <p className="text-sm whitespace-pre-wrap mt-1">{comment.text}</p>
-                          </div>
-                      </div>
-                  ))}
+              <div ref={commentsContainerRef} className="space-y-3 overflow-y-auto pr-2 border rounded-md p-3 mt-2 max-h-[22rem]">
+                  {editedCard.comments?.map(comment => {
+                      const attachment = findAttachmentInText(comment.text);
+                      const cleanText = comment.text.replace(/!\[img\]\(([\w-]+)\)/, '').trim();
+                      return (
+                        <div key={comment.id} className="flex items-start space-x-3">
+                            <Avatar className="h-8 w-8">
+                                <AvatarImage src={comment.user.profilePicture || undefined} alt={comment.user.username} />
+                                <AvatarFallback style={{backgroundColor: comment.user.color}}>
+                                    {getInitials(comment.user.username)}
+                                </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1">
+                                <div>
+                                  <span className="font-semibold text-sm">{comment.user.username}</span>
+                                  <span className="text-xs text-muted-foreground ml-2">
+                                    {new Date(comment.timestamp).toLocaleString(undefined, {
+                                        year: 'numeric', month: 'numeric', day: 'numeric',
+                                        hour: '2-digit', minute: '2-digit'
+                                    })}
+                                  </span>
+                                </div>
+                                {cleanText && <p className="text-sm whitespace-pre-wrap mt-1">{cleanText}</p>}
+                                {attachment && attachment.thumbnail_small && (
+                                    <div className="mt-2">
+                                        <Link href={attachment.url} target="_blank" rel="noopener noreferrer">
+                                            <Image 
+                                                src={attachment.thumbnail_small} 
+                                                alt="Comment attachment" 
+                                                width={200} 
+                                                height={150} 
+                                                className="rounded-md object-cover border hover:opacity-80 transition-opacity"
+                                            />
+                                        </Link>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                      );
+                  })}
                   {(!editedCard.comments || editedCard.comments.length === 0) && (
                       <p className="text-sm text-center text-muted-foreground py-4">No comments yet.</p>
                   )}
