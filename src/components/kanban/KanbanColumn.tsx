@@ -96,13 +96,13 @@ export default function KanbanColumn({
 
       <div className="p-2 space-y-2 flex-grow overflow-y-auto">
         {column.cards.map((card) => (
-          <div onDragEnd={onDragEndCard} key={card.id}>
-            <KanbanCard
-              card={card}
-              onDragStart={(e) => onDragStartCard(e, card, column.id)}
-              onClick={() => onCardClick(card)}
-            />
-          </div>
+          <KanbanCard
+            key={card.id}
+            card={card}
+            onDragStart={(e) => onDragStartCard(e, card, column.id)}
+            onDragEnd={onDragEndCard}
+            onClick={() => onCardClick(card)}
+          />
         ))}
       </div>
       

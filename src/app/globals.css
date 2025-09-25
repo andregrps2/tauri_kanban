@@ -86,3 +86,7 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+.dragging {
+  @apply opacity-100 ring-2 ring-primary;
+}
