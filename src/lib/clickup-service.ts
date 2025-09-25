@@ -44,9 +44,9 @@ export async function getListStatuses() {
   if (!listId) {
     throw new Error("ClickUp List ID not found. Please set it in Settings.");
   }
+  // Correctly fetch the full list details which include statuses
   const listData = await fetchClickUpAPI(`/list/${listId}`);
-  // The statuses are not directly on the list object, they are inside a statuses array
-  return listData.statuses;
+  return listData.statuses || [];
 }
 
 // Get tasks for the configured list
