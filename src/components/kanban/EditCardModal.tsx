@@ -75,10 +75,11 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
         const formattedChecklists = (taskDetails.checklists || []).map((c: any) => ({
             id: c.id,
             title: c.name,
-            items: c.items.map((i: any) => ({
+            items: (c.items || []).map((i: any) => ({
                 id: i.id,
                 text: i.name,
                 completed: i.resolved,
+                orderindex: i.orderindex,
             })).sort((a: any, b: any) => a.orderindex - b.orderindex),
         }));
         const updatedCard = { ...editedCard, checklists: formattedChecklists };
@@ -178,7 +179,7 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
       // Clear the input field for this checklist
       setNewChecklistItem({ ...newChecklistItem, [checklistId]: "" });
       
-      // Re-fetch the entire task to get the updated checklist with the new item's real ID
+      // Re-fetch the entire task to get the updated checklist with the new item's real ID and order
       await refreshTaskState();
   
     } catch (error: any) {

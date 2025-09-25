@@ -49,11 +49,12 @@ export default function KanbanBoard() {
           checklists: (task.checklists || []).map((c: any) => ({
             id: c.id,
             title: c.name,
-            items: c.items.map((i: any) => ({
+            items: (c.items || []).map((i: any) => ({
               id: i.id,
               text: i.name,
               completed: i.resolved,
-            })).sort((a:any, b:any) => a.orderindex - b.orderindex),
+              orderindex: i.orderindex,
+            })).sort((a: any, b: any) => a.orderindex - b.orderindex),
           })),
         }));
 
@@ -107,11 +108,12 @@ export default function KanbanBoard() {
       const formattedChecklists = (taskDetails.checklists || []).map((c: any) => ({
         id: c.id,
         title: c.name,
-        items: c.items.map((i: any) => ({
-          id: i.id,
-          text: i.name,
-          completed: i.resolved,
-        })).sort((a:any, b:any) => a.orderindex - b.orderindex),
+        items: (c.items || []).map((i: any) => ({
+            id: i.id,
+            text: i.name,
+            completed: i.resolved,
+            orderindex: i.orderindex,
+        })).sort((a: any, b: any) => a.orderindex - b.orderindex),
       }));
 
       const updatedCard: CardData = { 

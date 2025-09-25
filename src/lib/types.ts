@@ -14,6 +14,7 @@ export interface ChecklistItemData {
   id: string;
   text: string;
   completed: boolean;
+  orderindex: number;
 }
 
 export interface ChecklistData {
