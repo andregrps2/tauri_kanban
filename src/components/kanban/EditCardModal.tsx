@@ -28,7 +28,6 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Check, Plus, Send, Trash2, X } from "lucide-react";
 import { Badge } from "../ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { Checkbox } from "../ui/checkbox";
 import { Progress } from "../ui/progress";
 import { MultiSelect } from "../ui/multi-select";
@@ -174,7 +173,7 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
   
     const currentChecklist = editedCard.checklists?.find(c => c.id === checklistId);
     const orderindex = currentChecklist ? currentChecklist.items.length : 0;
-
+  
     setNewChecklistItem({ ...newChecklistItem, [checklistId]: "" });
   
     try {
@@ -185,7 +184,7 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
       toast({
         variant: "destructive",
         title: "Failed to add checklist item",
-        description: `API Response: ${error.message}`,
+        description: error.message,
       });
     }
   };
@@ -236,7 +235,7 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-3xl">
+      <DialogContent className="sm:max-w-5xl">
         <DialogHeader>
           <DialogTitle>Edit Card</DialogTitle>
         </DialogHeader>
@@ -262,99 +261,59 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
               />
             </div>
             
-            <Tabs defaultValue="comments" className="w-full">
-              <TabsList>
-                <TabsTrigger value="comments">Comments</TabsTrigger>
-                <TabsTrigger value="checklists">Checklists</TabsTrigger>
-              </TabsList>
-              <TabsContent value="comments">
-                 <div className="space-y-2">
-                    <div className="space-y-2 max-h-40 overflow-y-auto pr-2 border rounded-md p-2 mt-2">
-                        {editedCard.comments?.map(comment => (
-                            <div key={comment.id} className="text-sm p-2 bg-muted/50 rounded-md">
-                                <p className="whitespace-pre-wrap">{comment.text}</p>
-                                <p className="text-xs text-muted-foreground mt-1">
-                                    {new Date(comment.timestamp).toLocaleString()}
-                                </p>
-                            </div>
-                        ))}
-                        {(!editedCard.comments || editedCard.comments.length === 0) && (
-                            <p className="text-sm text-center text-muted-foreground py-4">No comments yet.</p>
-                        )}
-                    </div>
-                    <div className="flex items-start space-x-2">
-                        <Textarea 
-                            placeholder="Write a comment..." 
-                            value={newComment}
-                            onChange={(e) => setNewComment(e.target.value)}
-                            className="flex-grow"
-                            rows={2}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter' && !e.shiftKey) {
-                                e.preventDefault();
-                                handleAddComment();
-                              }
-                            }}
-                        />
-                        <Button onClick={handleAddComment} size="icon" className="flex-shrink-0 bg-accent text-accent-foreground hover:bg-accent/90">
-                            <Send className="h-4 w-4" />
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Checklists</h3>
+              <div className="space-y-4 max-h-60 overflow-y-auto pr-2 mt-2">
+                {editedCard.checklists?.map((checklist) => {
+                  const completedItems = checklist.items.filter(i => i.completed).length;
+                  const progress = checklist.items.length > 0 ? (completedItems / checklist.items.length) * 100 : 0;
+                  return (
+                    <div key={checklist.id} className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <h4 className="font-semibold">{checklist.title}</h4>
+                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleDeleteChecklist(checklist.id)}>
+                          <Trash2 className="h-4 w-4 text-muted-foreground"/>
                         </Button>
-                    </div>
-                </div>
-              </TabsContent>
-              <TabsContent value="checklists">
-                <div className="space-y-4 max-h-60 overflow-y-auto pr-2 mt-2">
-                  {editedCard.checklists?.map((checklist) => {
-                    const completedItems = checklist.items.filter(i => i.completed).length;
-                    const progress = checklist.items.length > 0 ? (completedItems / checklist.items.length) * 100 : 0;
-                    return (
-                      <div key={checklist.id} className="space-y-2">
-                        <div className="flex justify-between items-center">
-                          <h4 className="font-semibold">{checklist.title}</h4>
-                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleDeleteChecklist(checklist.id)}>
-                            <Trash2 className="h-4 w-4 text-muted-foreground"/>
-                          </Button>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground">{Math.round(progress)}%</span>
-                          <Progress value={progress} className="w-full h-2"/>
-                        </div>
-                        <div className="space-y-1 pl-2">
-                          {checklist.items.map((item) => (
-                            <div key={item.id} className="flex items-center gap-2 group">
-                              <Checkbox id={`${checklist.id}-${item.id}`} checked={item.completed} onCheckedChange={() => handleToggleChecklistItem(checklist.id, item.id, item.completed)} />
-                              <label htmlFor={`${checklist.id}-${item.id}`} className="flex-grow text-sm data-[completed=true]:line-through data-[completed=true]:text-muted-foreground" data-completed={item.completed}>{item.text}</label>
-                              <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={() => handleDeleteChecklistItem(checklist.id, item.id)}>
-                                <X className="h-4 w-4 text-muted-foreground"/>
-                              </Button>
-                            </div>
-                          ))}
-                        </div>
-                        <div className="flex items-center gap-2 pl-2">
-                          <Input 
-                            placeholder="Add an item"
-                            value={newChecklistItem[checklist.id] || ""}
-                            onChange={(e) => setNewChecklistItem({...newChecklistItem, [checklist.id]: e.target.value})}
-                            onKeyDown={(e) => e.key === 'Enter' && handleAddChecklistItem(checklist.id)}
-                            className="h-8"
-                          />
-                          <Button size="sm" onClick={() => handleAddChecklistItem(checklist.id)}>Add</Button>
-                        </div>
                       </div>
-                    );
-                  })}
-                </div>
-                <div className="flex items-center gap-2 mt-4 border-t pt-4">
-                  <Input 
-                    placeholder="Add new checklist"
-                    value={newChecklistTitle}
-                    onChange={(e) => setNewChecklistTitle(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleAddChecklist()}
-                  />
-                  <Button onClick={handleAddChecklist} className="bg-accent text-accent-foreground hover:bg-accent/90">Add Checklist</Button>
-                </div>
-              </TabsContent>
-            </Tabs>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground">{Math.round(progress)}%</span>
+                        <Progress value={progress} className="w-full h-2"/>
+                      </div>
+                      <div className="space-y-1 pl-2">
+                        {checklist.items.map((item) => (
+                          <div key={item.id} className="flex items-center gap-2 group">
+                            <Checkbox id={`${checklist.id}-${item.id}`} checked={item.completed} onCheckedChange={() => handleToggleChecklistItem(checklist.id, item.id, item.completed)} />
+                            <label htmlFor={`${checklist.id}-${item.id}`} className="flex-grow text-sm data-[completed=true]:line-through data-[completed=true]:text-muted-foreground" data-completed={item.completed}>{item.text}</label>
+                            <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={() => handleDeleteChecklistItem(checklist.id, item.id)}>
+                              <X className="h-4 w-4 text-muted-foreground"/>
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="flex items-center gap-2 pl-2">
+                        <Input 
+                          placeholder="Add an item"
+                          value={newChecklistItem[checklist.id] || ""}
+                          onChange={(e) => setNewChecklistItem({...newChecklistItem, [checklist.id]: e.target.value})}
+                          onKeyDown={(e) => e.key === 'Enter' && handleAddChecklistItem(checklist.id)}
+                          className="h-8"
+                        />
+                        <Button size="sm" onClick={() => handleAddChecklistItem(checklist.id)}>Add</Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="flex items-center gap-2 mt-4 border-t pt-4">
+                <Input 
+                  placeholder="Add new checklist"
+                  value={newChecklistTitle}
+                  onChange={(e) => setNewChecklistTitle(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleAddChecklist()}
+                />
+                <Button onClick={handleAddChecklist} className="bg-accent text-accent-foreground hover:bg-accent/90">Add Checklist</Button>
+              </div>
+            </div>
           </div>
 
           {/* Sidebar Column */}
@@ -408,6 +367,40 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
                     </PopoverContent>
                   </Popover>
               </MultiSelect>
+            </div>
+            <div className="space-y-2">
+              <Label>Comments</Label>
+              <div className="space-y-2 max-h-40 overflow-y-auto pr-2 border rounded-md p-2 mt-2">
+                  {editedCard.comments?.map(comment => (
+                      <div key={comment.id} className="text-sm p-2 bg-muted/50 rounded-md">
+                          <p className="whitespace-pre-wrap">{comment.text}</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                              {new Date(comment.timestamp).toLocaleString()}
+                          </p>
+                      </div>
+                  ))}
+                  {(!editedCard.comments || editedCard.comments.length === 0) && (
+                      <p className="text-sm text-center text-muted-foreground py-4">No comments yet.</p>
+                  )}
+              </div>
+              <div className="flex items-start space-x-2">
+                  <Textarea 
+                      placeholder="Write a comment..." 
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      className="flex-grow"
+                      rows={2}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleAddComment();
+                        }
+                      }}
+                  />
+                  <Button onClick={handleAddComment} size="icon" className="flex-shrink-0 bg-accent text-accent-foreground hover:bg-accent/90">
+                      <Send className="h-4 w-4" />
+                  </Button>
+              </div>
             </div>
           </div>
         </div>
