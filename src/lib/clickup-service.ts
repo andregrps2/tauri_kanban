@@ -124,11 +124,10 @@ export async function deleteChecklist(checklistId: string) {
 }
 
 export async function createChecklistItem(checklistId: string, name: string) {
-  const response = await fetchClickUpAPI(`/checklist/${checklistId}/checklist_item`, {
+  return fetchClickUpAPI(`/checklist/${checklistId}/checklist_item`, {
     method: 'POST',
     body: JSON.stringify({ name }),
   });
-  return response.item;
 }
 
 export async function updateChecklistItem(checklistId: string, checklistItemId: string, data: { name?: string, resolved?: boolean }) {

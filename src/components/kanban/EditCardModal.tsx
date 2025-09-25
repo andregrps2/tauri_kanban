@@ -150,7 +150,7 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
     const text = newChecklistItem[checklistId]?.trim();
     if (!text) return;
     try {
-      const { item } = await ClickUpService.createChecklistItem(checklistId, text);
+      const item = await ClickUpService.createChecklistItem(checklistId, text);
       const newItem: ChecklistItemData = {
         id: item.id,
         text: item.name,
