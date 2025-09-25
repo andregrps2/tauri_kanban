@@ -1,5 +1,7 @@
 import AppLayout from '@/components/AppLayout';
 import ThemeSwitcher from '@/components/ThemeSwitcher';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 export default function SettingsPage() {
   return (
@@ -11,10 +13,25 @@ export default function SettingsPage() {
           </h1>
         </header>
         <main className="flex-grow overflow-auto p-6">
-          <div className="max-w-md mx-auto space-y-4">
-            <h2 className="text-xl font-semibold">Appearance</h2>
-            <div className="p-4 border rounded-lg">
-              <ThemeSwitcher />
+          <div className="max-w-md mx-auto space-y-8">
+            <div>
+              <h2 className="text-xl font-semibold mb-4">Appearance</h2>
+              <div className="p-4 border rounded-lg">
+                <ThemeSwitcher />
+              </div>
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold mb-4">API Configuration</h2>
+              <div className="p-4 border rounded-lg space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="api-token">API Token</Label>
+                  <Input
+                    id="api-token"
+                    type="password"
+                    placeholder="Enter your API token"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </main>
