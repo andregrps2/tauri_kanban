@@ -80,7 +80,7 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
                 text: i.name,
                 completed: i.resolved,
                 orderindex: i.orderindex,
-            })).sort((a: any, b: any) => a.orderindex - b.orderindex),
+            })).sort((a, b) => a.orderindex - b.orderindex),
         }));
         const updatedCard = { ...editedCard, checklists: formattedChecklists };
         setEditedCard(updatedCard);
@@ -172,14 +172,34 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
     const text = newChecklistItem[checklistId]?.trim();
     if (!text) return;
   
+    // Optimistic update
+    const tempId = `temp-${crypto.randomUUID()}`;
+    const newOptimisticItem: ChecklistItemData = {
+      id: tempId,
+      text,
+      completed: false,
+      // Place it at the end for now
+      orderindex: (editedCard.checklists?.find(c => c.id === checklistId)?.items.length || 0),
+    };
+  
+    setEditedCard(prevCard => ({
+      ...prevCard,
+      checklists: prevCard.checklists?.map(c => 
+        c.id === checklistId 
+          ? { ...c, items: [...c.items, newOptimisticItem] }
+          : c
+      )
+    }));
+  
+    // Clear the input field
+    setNewChecklistItem({ ...newChecklistItem, [checklistId]: "" });
+  
     try {
-      // API Call
+      // API Call in the background
       await ClickUpService.createChecklistItem(checklistId, text);
       
-      // Clear the input field for this checklist
-      setNewChecklistItem({ ...newChecklistItem, [checklistId]: "" });
-      
-      // Re-fetch the entire task to get the updated checklist with the new item's real ID and order
+      // Silently refresh the task state in the background to get real IDs and order
+      // This won't cause a UI flash but ensures data consistency for subsequent actions.
       await refreshTaskState();
   
     } catch (error: any) {
@@ -188,6 +208,15 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
         title: "Failed to add checklist item",
         description: `API Response: ${error.message}`,
       });
+      // Revert optimistic update on failure
+      setEditedCard(prevCard => ({
+        ...prevCard,
+        checklists: prevCard.checklists?.map(c => 
+          c.id === checklistId 
+            ? { ...c, items: c.items.filter(item => item.id !== tempId) }
+            : c
+        )
+      }));
     }
   };
   
