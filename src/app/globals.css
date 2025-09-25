@@ -252,3 +252,27 @@ body {
         transform: translateY(110vh);
     }
 }
+
+/* Lightning Animation */
+.lightning-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9998; /* Below rain/leaves but above content */
+    opacity: 0;
+}
+
+.lightning-flash {
+    animation: lightning-flash 0.3s ease-out;
+}
+
+@keyframes lightning-flash {
+    0% { opacity: 0; }
+    20% { opacity: 0.3; }
+    30% { opacity: 0.1; }
+    40% { opacity: 0.2; }
+    100% { opacity: 0; }
+}

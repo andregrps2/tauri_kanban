@@ -4,6 +4,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/components/theme-provider';
 import FallingLeaves from '@/components/FallingLeaves';
 import FallingRain from '@/components/FallingRain';
+import Lightning from '@/components/Lightning';
 
 export const metadata: Metadata = {
   title: 'Tauri Kanban Board',
@@ -31,6 +32,7 @@ export default function RootLayout({
         >
           <FallingLeaves />
           <FallingRain />
+          <Lightning />
           {children}
           <Toaster />
         </ThemeProvider>
