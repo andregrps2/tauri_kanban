@@ -79,6 +79,27 @@ export default function KanbanBoard() {
     fetchData();
   }, [toast]);
 
+  const handleCardClick = async (card: CardData) => {
+    try {
+      // Show card immediately with existing data
+      setEditingCard(card);
+      // Fetch and add comments
+      const comments = await ClickUpService.getTaskComments(card.id);
+      const formattedComments = comments.map((c: any) => ({
+        id: c.id,
+        text: c.comment_text,
+        timestamp: c.date,
+      }));
+      setEditingCard({ ...card, comments: formattedComments });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Failed to load comments",
+        description: error.message,
+      });
+    }
+  };
+
 
   const handleAddColumn = () => {
     toast({ title: "Note", description: "Column management should be done in ClickUp." });
@@ -117,7 +138,9 @@ export default function KanbanBoard() {
 
   const handleUpdateCard = async (updatedCard: CardData) => {
     try {
-      // Optimistic update
+      const originalCard = allCards.find(c => c.id === updatedCard.id);
+
+      // Optimistic update for UI responsiveness
       const newColumns = columns.map((col) => ({
         ...col,
         cards: col.cards.map((card) =>
@@ -125,14 +148,25 @@ export default function KanbanBoard() {
         ),
       }));
       setColumns(newColumns);
-      setEditingCard(null);
+      
+      // Check for new comments and create them
+      if (updatedCard.comments && originalCard) {
+        const originalCommentIds = (editingCard?.comments || []).map(c => c.id);
+        const newComments = updatedCard.comments.filter(c => !originalCommentIds.includes(c.id));
+        for (const comment of newComments) {
+          await ClickUpService.createTaskComment(updatedCard.id, comment.text);
+        }
+      }
 
-      // API call
+      // API call to update the task details
       await ClickUpService.updateTask(updatedCard.id, {
         name: updatedCard.title,
         description: updatedCard.description,
         due_date: updatedCard.dueDate ? new Date(updatedCard.dueDate).getTime() : null,
       });
+      
+      // Close modal after all updates
+      setEditingCard(null);
 
     } catch (error: any) {
        toast({
@@ -246,7 +280,7 @@ export default function KanbanBoard() {
             onCardDrop={handleDrop}
             onDragStartCard={handleDragStart}
             onDragEndCard={handleDragEnd}
-            onCardClick={setEditingCard}
+            onCardClick={handleCardClick}
           />
         ))}
         <div className="w-80 flex-shrink-0 p-2 rounded-lg bg-primary/10">

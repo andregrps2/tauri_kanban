@@ -35,6 +35,11 @@ async function fetchClickUpAPI(endpoint: string, options: RequestInit = {}) {
     throw new Error(errorData.err || `HTTP error! status: ${response.status}`);
   }
 
+  // For DELETE requests which might not have a body
+  if (response.status === 204) {
+    return;
+  }
+  
   return response.json();
 }
 
@@ -44,7 +49,6 @@ export async function getListStatuses() {
   if (!listId) {
     throw new Error("ClickUp List ID not found. Please set it in Settings.");
   }
-  // Correctly fetch the full list details which include statuses
   const listData = await fetchClickUpAPI(`/list/${listId}`);
   return listData.statuses || [];
 }
@@ -55,7 +59,6 @@ export async function getTasks() {
   if (!listId) {
     throw new Error("ClickUp List ID not found. Please set it in Settings.");
   }
-  // This will fetch tasks from all statuses
   const { tasks } = await fetchClickUpAPI(`/list/${listId}/task`);
   return tasks;
 }
@@ -79,4 +82,18 @@ export async function deleteTask(taskId: string) {
   return fetchClickUpAPI(`/task/${taskId}`, {
     method: 'DELETE',
   });
+}
+
+// Get comments for a specific task
+export async function getTaskComments(taskId: string) {
+    const data = await fetchClickUpAPI(`/task/${taskId}/comment`);
+    return data.comments || [];
+}
+
+// Create a comment on a specific task
+export async function createTaskComment(taskId: string, commentText: string) {
+    return fetchClickUpAPI(`/task/${taskId}/comment`, {
+        method: 'POST',
+        body: JSON.stringify({ comment_text: commentText }),
+    });
 }
