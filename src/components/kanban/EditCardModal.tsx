@@ -454,11 +454,14 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
                               </AvatarFallback>
                           </Avatar>
                           <div className="flex-1">
-                              <div className="flex justify-between items-center">
-                                <p className="font-semibold text-sm">{comment.user.username}</p>
-                                <p className="text-xs text-muted-foreground">
-                                    {new Date(comment.timestamp).toLocaleString()}
-                                </p>
+                              <div>
+                                <span className="font-semibold text-sm">{comment.user.username}</span>
+                                <span className="text-xs text-muted-foreground ml-2">
+                                    {new Date(comment.timestamp).toLocaleDateString(undefined, {
+                                        year: 'numeric', month: 'numeric', day: 'numeric',
+                                        hour: '2-digit', minute: '2-digit'
+                                    })}
+                                </span>
                               </div>
                               <p className="text-sm whitespace-pre-wrap mt-1">{comment.text}</p>
                           </div>
