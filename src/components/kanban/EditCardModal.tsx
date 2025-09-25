@@ -391,7 +391,7 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
           </div>
 
           {/* Sidebar Column */}
-          <div className="md:col-span-4 space-y-4">
+          <div className="md:col-span-4 space-y-4 flex flex-col">
             <div className="space-y-2">
                 <Label htmlFor="dueDate">Due Date</Label>
                 <Input
@@ -442,9 +442,9 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
                   </Popover>
               </MultiSelect>
             </div>
-            <div className="space-y-4">
+            <div className="space-y-4 flex flex-col flex-grow min-h-0">
               <Label>Comments</Label>
-              <div className="space-y-3 max-h-60 overflow-y-auto pr-2 border rounded-md p-3 mt-2">
+              <div className="space-y-3 flex-grow overflow-y-auto pr-2 border rounded-md p-3 mt-2 max-h-96">
                   {editedCard.comments?.map(comment => (
                       <div key={comment.id} className="flex items-start space-x-3">
                           <Avatar className="h-8 w-8">
