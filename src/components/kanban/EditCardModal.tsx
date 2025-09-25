@@ -49,9 +49,10 @@ interface EditCardModalProps {
   onClose: () => void;
   onSave: (card: CardData) => void;
   onDelete: (cardId: string) => void;
+  onUpdate: (updatedCard: CardData) => void;
 }
 
-export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, onClose, onSave, onDelete }: EditCardModalProps) {
+export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, onClose, onSave, onDelete, onUpdate }: EditCardModalProps) {
   const [editedCard, setEditedCard] = useState<CardData>(card);
   const [newLabelName, setNewLabelName] = useState("");
   const [newLabelColor, setNewLabelColor] = useState(colorClasses[0]);
@@ -67,6 +68,31 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
   const handleSave = () => {
     onSave(editedCard);
   };
+  
+  const refreshTaskState = async () => {
+    try {
+        const taskDetails = await ClickUpService.getTask(editedCard.id);
+        const formattedChecklists = (taskDetails.checklists || []).map((c: any) => ({
+            id: c.id,
+            title: c.name,
+            items: c.items.map((i: any) => ({
+                id: i.id,
+                text: i.name,
+                completed: i.resolved,
+            })).sort((a: any, b: any) => a.orderindex - b.orderindex),
+        }));
+        const updatedCard = { ...editedCard, checklists: formattedChecklists };
+        setEditedCard(updatedCard);
+        onUpdate(updatedCard); // Propagate the change up to the board
+    } catch (error: any) {
+        toast({
+            variant: "destructive",
+            title: "Failed to refresh task details",
+            description: error.message,
+        });
+    }
+  };
+
 
   const handleLabelSelect = (selectedLabelIds: string[]) => {
     const selectedLabels = allLabels.filter(label => selectedLabelIds.includes(label.id));
@@ -116,14 +142,9 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
   const handleAddChecklist = async () => {
     if (newChecklistTitle.trim() === "") return;
     try {
-      const createdChecklist = await ClickUpService.createChecklist(editedCard.id, newChecklistTitle);
-      const newChecklist: ChecklistData = {
-        id: createdChecklist.id,
-        title: createdChecklist.name,
-        items: [],
-      };
-      setEditedCard({ ...editedCard, checklists: [...(editedCard.checklists || []), newChecklist]});
+      await ClickUpService.createChecklist(editedCard.id, newChecklistTitle);
       setNewChecklistTitle("");
+      await refreshTaskState(); // Refresh the entire task state
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -151,20 +172,14 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
     if (!text) return;
   
     try {
-      // API Call - wait for the response to get the real ID
-      const createdItem = await ClickUpService.createChecklistItem(checklistId, text);
-      const newItem: ChecklistItemData = {
-        id: createdItem.id, // Use the real ID from the response
-        text: createdItem.name,
-        completed: false,
-      };
-  
-      // Update UI with the real data
-      const updatedChecklists = editedCard.checklists?.map(c =>
-        c.id === checklistId ? { ...c, items: [...c.items, newItem] } : c
-      );
-      setEditedCard({ ...editedCard, checklists: updatedChecklists });
+      // API Call
+      await ClickUpService.createChecklistItem(checklistId, text);
+      
+      // Clear the input field for this checklist
       setNewChecklistItem({ ...newChecklistItem, [checklistId]: "" });
+      
+      // Re-fetch the entire task to get the updated checklist with the new item's real ID
+      await refreshTaskState();
   
     } catch (error: any) {
       toast({
@@ -174,6 +189,7 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
       });
     }
   };
+  
 
   const handleToggleChecklistItem = async (checklistId: string, itemId: string, currentStatus: boolean) => {
     try {
@@ -306,8 +322,8 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
                         <div className="space-y-1 pl-2">
                           {checklist.items.map((item) => (
                             <div key={item.id} className="flex items-center gap-2 group">
-                              <Checkbox id={item.id} checked={item.completed} onCheckedChange={() => handleToggleChecklistItem(checklist.id, item.id, item.completed)} />
-                              <label htmlFor={item.id} className="flex-grow text-sm data-[completed=true]:line-through data-[completed=true]:text-muted-foreground" data-completed={item.completed}>{item.text}</label>
+                              <Checkbox id={`${checklist.id}-${item.id}`} checked={item.completed} onCheckedChange={() => handleToggleChecklistItem(checklist.id, item.id, item.completed)} />
+                              <label htmlFor={`${checklist.id}-${item.id}`} className="flex-grow text-sm data-[completed=true]:line-through data-[completed=true]:text-muted-foreground" data-completed={item.completed}>{item.text}</label>
                               <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={() => handleDeleteChecklistItem(checklist.id, item.id)}>
                                 <X className="h-4 w-4 text-muted-foreground"/>
                               </Button>

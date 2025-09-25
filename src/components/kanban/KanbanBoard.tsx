@@ -187,16 +187,21 @@ export default function KanbanBoard() {
     }
   };
 
+  // This function will be passed down to the modal to update the board's state
+  const handleCardUpdateFromModal = (updatedCard: CardData) => {
+    const newColumns = columns.map((col) => ({
+      ...col,
+      cards: col.cards.map((card) =>
+        card.id === updatedCard.id ? updatedCard : card
+      ),
+    }));
+    setColumns(newColumns);
+  };
+
   const handleUpdateCard = async (updatedCard: CardData) => {
     try {
       // Optimistic update for UI responsiveness
-      const newColumns = columns.map((col) => ({
-        ...col,
-        cards: col.cards.map((card) =>
-          card.id === updatedCard.id ? updatedCard : card
-        ),
-      }));
-      setColumns(newColumns);
+      handleCardUpdateFromModal(updatedCard);
       
       // API call to update the task details
       await ClickUpService.updateTask(updatedCard.id, {
@@ -348,6 +353,7 @@ export default function KanbanBoard() {
           onClose={() => setEditingCard(null)}
           onSave={handleUpdateCard}
           onDelete={handleDeleteCard}
+          onUpdate={handleCardUpdateFromModal}
         />
       )}
     </>
