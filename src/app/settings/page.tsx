@@ -46,13 +46,16 @@ export default function SettingsPage() {
       localStorage.setItem('clickup_api_token', token);
       const workspaces = await ClickUpService.getWorkspaces();
       if (workspaces && workspaces.length > 0) {
-        // Using the first workspace for simplicity
-        const spaces = await ClickUpService.getSpaces(workspaces[0].id);
-        const allLists: ClickUpList[] = [];
+        // Using the first workspace for simplicity, but you could extend this
+        const teamId = workspaces[0].id;
+        const spaces = await ClickUpService.getSpaces(teamId);
+        
+        let allLists: ClickUpList[] = [];
         for (const space of spaces) {
-            const spaceLists = await ClickUpService.getLists(space.id);
-            allLists.push(...spaceLists);
+          const spaceLists = await ClickUpService.getLists(space.id);
+          allLists = [...allLists, ...spaceLists];
         }
+
         setLists(allLists);
       } else {
         setLists([]);
