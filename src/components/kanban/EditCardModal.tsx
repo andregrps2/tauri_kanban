@@ -452,7 +452,7 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
             </div>
             <div className="space-y-4">
               <Label>Comments</Label>
-              <div ref={commentsContainerRef} className="space-y-3 overflow-y-auto pr-2 border rounded-md p-3 mt-2 max-h-60">
+              <div ref={commentsContainerRef} className="space-y-3 overflow-y-auto pr-2 border rounded-md p-3 mt-2 max-h-96">
                   {editedCard.comments?.map(comment => (
                       <div key={comment.id} className="flex items-start space-x-3">
                           <Avatar className="h-8 w-8">
