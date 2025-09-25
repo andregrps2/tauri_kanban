@@ -30,6 +30,7 @@ interface KanbanColumnProps {
   onDeleteColumn: (columnId: string) => void;
   onCardDrop: (e: React.DragEvent<HTMLDivElement>, columnId: string) => void;
   onDragStartCard: (e: React.DragEvent<HTMLDivElement>, card: CardData, sourceColumnId: string) => void;
+  onDragEndCard: (e: React.DragEvent<HTMLDivElement>) => void;
   onCardClick: (card: CardData) => void;
 }
 
@@ -39,6 +40,7 @@ export default function KanbanColumn({
   onDeleteColumn,
   onCardDrop,
   onDragStartCard,
+  onDragEndCard,
   onCardClick,
 }: KanbanColumnProps) {
   const [newCardTitle, setNewCardTitle] = useState("");
@@ -94,12 +96,13 @@ export default function KanbanColumn({
 
       <div className="p-2 space-y-2 flex-grow overflow-y-auto">
         {column.cards.map((card) => (
-          <KanbanCard
-            key={card.id}
-            card={card}
-            onDragStart={(e) => onDragStartCard(e, card, column.id)}
-            onClick={() => onCardClick(card)}
-          />
+          <div onDragEnd={onDragEndCard} key={card.id}>
+            <KanbanCard
+              card={card}
+              onDragStart={(e) => onDragStartCard(e, card, column.id)}
+              onClick={() => onCardClick(card)}
+            />
+          </div>
         ))}
       </div>
       
