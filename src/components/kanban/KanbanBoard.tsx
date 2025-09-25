@@ -131,13 +131,10 @@ export default function KanbanBoard() {
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, card: CardData, sourceColumnId: string) => {
     e.dataTransfer.setData("cardInfo", JSON.stringify({ cardId: card.id, sourceColumnId }));
-    setTimeout(() => {
-      (e.target as HTMLDivElement).style.opacity = '0.9';
-    }, 0);
   };
 
   const handleDragEnd = (e: React.DragEvent<HTMLDivElement>) => {
-    (e.target as HTMLDivElement).style.opacity = '1';
+    // No longer needed
   };
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>, targetColumnId: string) => {
