@@ -64,9 +64,11 @@ export async function getTasks() {
   if (!listId) {
     throw new Error("ClickUp List ID not found. Please set it in Settings.");
   }
-  const { tasks } = await fetchClickUpAPI(`/list/${listId}/task`);
+  // Added include_checklists=true to the query parameters
+  const { tasks } = await fetchClickUpAPI(`/list/${listId}/task?include_checklists=true`);
   return tasks;
 }
+
 
 export async function createTask(title: string, status: string) {
   const { listId } = getCredentials();
@@ -109,11 +111,13 @@ export async function createTaskComment(taskId: string, commentText: string) {
 // --- Checklist Functions ---
 
 export async function createChecklist(taskId: string, name: string) {
-  return fetchClickUpAPI(`/task/${taskId}/checklist`, {
+  const response = await fetchClickUpAPI(`/task/${taskId}/checklist`, {
     method: 'POST',
     body: JSON.stringify({ name }),
   });
+  return response.checklist;
 }
+
 
 export async function deleteChecklist(checklistId: string) {
   return fetchClickUpAPI(`/checklist/${checklistId}`, {
@@ -122,10 +126,11 @@ export async function deleteChecklist(checklistId: string) {
 }
 
 export async function createChecklistItem(checklistId: string, name: string) {
-  return fetchClickUpAPI(`/checklist/${checklistId}/checklist_item`, {
+  const response = await fetchClickUpAPI(`/checklist/${checklistId}/checklist_item`, {
     method: 'POST',
     body: JSON.stringify({ name }),
   });
+  return response.item;
 }
 
 export async function updateChecklistItem(checklistId: string, checklistItemId: string, data: { name?: string, resolved?: boolean }) {
