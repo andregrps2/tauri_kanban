@@ -106,51 +106,85 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
         <DialogHeader>
           <DialogTitle>Edit Card</DialogTitle>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="title" className="text-right">
-              Title
-            </Label>
-            <Input
-              id="title"
-              value={editedCard.title}
-              onChange={(e) => setEditedCard({ ...editedCard, title: e.target.value })}
-              className="col-span-3"
-            />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 py-4">
+          {/* Main Content Column */}
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="title">Title</Label>
+              <Input
+                id="title"
+                value={editedCard.title}
+                onChange={(e) => setEditedCard({ ...editedCard, title: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={editedCard.description || ""}
+                onChange={(e) => setEditedCard({ ...editedCard, description: e.target.value })}
+                placeholder="Add a more detailed description..."
+                rows={5}
+              />
+            </div>
+            <div className="space-y-2">
+                <Label>Comments</Label>
+                <div className="space-y-2 max-h-40 overflow-y-auto pr-2 border rounded-md p-2">
+                    {editedCard.comments?.map(comment => (
+                        <div key={comment.id} className="text-sm p-2 bg-muted/50 rounded-md">
+                            <p className="whitespace-pre-wrap">{comment.text}</p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                                {new Date(comment.timestamp).toLocaleString()}
+                            </p>
+                        </div>
+                    ))}
+                    {(!editedCard.comments || editedCard.comments.length === 0) && (
+                        <p className="text-sm text-center text-muted-foreground py-4">No comments yet.</p>
+                    )}
+                </div>
+                <div className="flex items-start space-x-2">
+                    <Textarea 
+                        placeholder="Write a comment..." 
+                        value={newComment}
+                        onChange={(e) => setNewComment(e.target.value)}
+                        className="flex-grow"
+                        rows={2}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            handleAddComment();
+                          }
+                        }}
+                    />
+                    <Button onClick={handleAddComment} size="icon" className="flex-shrink-0 bg-accent text-accent-foreground hover:bg-accent/90">
+                        <Send className="h-4 w-4" />
+                    </Button>
+                </div>
+            </div>
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="description" className="text-right">
-              Description
-            </Label>
-            <Textarea
-              id="description"
-              value={editedCard.description || ""}
-              onChange={(e) => setEditedCard({ ...editedCard, description: e.target.value })}
-              className="col-span-3"
-              placeholder="Add a more detailed description..."
-            />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="dueDate" className="text-right">
-              Due Date
-            </Label>
-            <Input
-                id="dueDate"
-                type="date"
-                value={editedCard.dueDate || ""}
-                onChange={(e) => setEditedCard({...editedCard, dueDate: e.target.value})}
-                className="col-span-3"
-            />
-          </div>
-          <div className="grid grid-cols-4 items-start gap-4">
-            <Label className="text-right pt-2">Labels</Label>
-            <div className="col-span-3">
-              <div className="flex flex-wrap gap-1 mb-2">
+
+          {/* Sidebar Column */}
+          <div className="space-y-4">
+            <div className="space-y-2">
+                <Label htmlFor="dueDate">Due Date</Label>
+                <Input
+                    id="dueDate"
+                    type="date"
+                    value={editedCard.dueDate || ""}
+                    onChange={(e) => setEditedCard({...editedCard, dueDate: e.target.value})}
+                />
+            </div>
+            <div className="space-y-2">
+              <Label>Labels</Label>
+              <div className="min-h-[2.5rem] w-full rounded-md border border-input px-3 py-2 text-sm flex flex-wrap gap-1 items-center">
                 {editedCard.labels?.map(label => (
                   <Badge key={label.id} className={`${label.color} text-white`}>
                     {label.name}
                   </Badge>
                 ))}
+                 {(!editedCard.labels || editedCard.labels.length === 0) && (
+                    <span className="text-muted-foreground text-xs">No labels</span>
+                )}
               </div>
               <Popover>
                 <PopoverTrigger asChild>
@@ -191,45 +225,8 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
               </Popover>
             </div>
           </div>
-          <hr className="col-span-4" />
-          <div className="grid grid-cols-4 items-start gap-4">
-              <Label className="text-right pt-2">Comments</Label>
-              <div className="col-span-3">
-                  <div className="space-y-2 mb-4 max-h-32 overflow-y-auto pr-2">
-                      {editedCard.comments?.map(comment => (
-                          <div key={comment.id} className="text-sm p-2 bg-muted/50 rounded-md">
-                              <p className="whitespace-pre-wrap">{comment.text}</p>
-                              <p className="text-xs text-muted-foreground mt-1">
-                                  {new Date(comment.timestamp).toLocaleString()}
-                              </p>
-                          </div>
-                      ))}
-                      {(!editedCard.comments || editedCard.comments.length === 0) && (
-                          <p className="text-sm text-center text-muted-foreground py-4">No comments yet.</p>
-                      )}
-                  </div>
-                  <div className="flex items-start space-x-2">
-                      <Textarea 
-                          placeholder="Write a comment..." 
-                          value={newComment}
-                          onChange={(e) => setNewComment(e.target.value)}
-                          className="flex-grow"
-                          rows={2}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' && !e.shiftKey) {
-                              e.preventDefault();
-                              handleAddComment();
-                            }
-                          }}
-                      />
-                      <Button onClick={handleAddComment} size="icon" className="flex-shrink-0 bg-accent text-accent-foreground hover:bg-accent/90">
-                          <Send className="h-4 w-4" />
-                      </Button>
-                  </div>
-              </div>
-          </div>
         </div>
-        <DialogFooter className="flex justify-between w-full">
+        <DialogFooter className="flex justify-between w-full pt-4 border-t">
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="destructive">Delete Card</Button>
