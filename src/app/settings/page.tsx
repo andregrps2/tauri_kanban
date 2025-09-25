@@ -1,9 +1,29 @@
+'use client';
+
+import { useEffect, useState } from 'react';
 import AppLayout from '@/components/AppLayout';
 import ThemeSwitcher from '@/components/ThemeSwitcher';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 export default function SettingsPage() {
+  const [apiToken, setApiToken] = useState('');
+
+  useEffect(() => {
+    // Load the token from localStorage when the component mounts
+    const savedToken = localStorage.getItem('apiToken');
+    if (savedToken) {
+      setApiToken(savedToken);
+    }
+  }, []);
+
+  const handleTokenChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const token = e.target.value;
+    setApiToken(token);
+    // Save the token to localStorage
+    localStorage.setItem('apiToken', token);
+  };
+
   return (
     <AppLayout>
       <div className="flex flex-col h-full">
@@ -29,6 +49,8 @@ export default function SettingsPage() {
                     id="api-token"
                     type="password"
                     placeholder="Enter your API token"
+                    value={apiToken}
+                    onChange={handleTokenChange}
                   />
                 </div>
               </div>
