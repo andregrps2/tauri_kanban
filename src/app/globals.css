@@ -144,6 +144,40 @@ body {
     --sidebar-border: 30 30% 75%;
     --sidebar-ring: 25 70% 60%;
   }
+  .lofi-dark-japanese {
+    --background: 240 8% 12%; /* Very dark desaturated blue, almost black */
+    --foreground: 240 10% 95%; /* Very light grey, almost white */
+    --card: 240 7% 15%;
+    --card-foreground: 240 10% 95%;
+    --popover: 240 8% 10%;
+    --popover-foreground: 240 10% 95%;
+    --primary: 275 60% 70%; /* Soft lavender */
+    --primary-foreground: 240 8% 12%; /* Dark background for contrast */
+    --secondary: 240 6% 25%; /* Dark grey */
+    --secondary-foreground: 240 10% 95%;
+    --muted: 240 6% 20%;
+    --muted-foreground: 240 5% 65%;
+    --accent: 330 50% 75%; /* Pale pink */
+    --accent-foreground: 240 8% 12%;
+    --destructive: 0 70% 60%; /* A slightly muted red */
+    --destructive-foreground: 0 0% 100%;
+    --border: 240 5% 30%; /* Darker border */
+    --input: 240 6% 20%;
+    --ring: 275 60% 70%; /* Lavender for rings */
+    --chart-1: 275 60% 70%;
+    --chart-2: 330 50% 75%;
+    --chart-3: 240 20% 60%;
+    --chart-4: 260 50% 65%;
+    --chart-5: 300 40% 70%;
+    --sidebar-background: 240 8% 12%;
+    --sidebar-foreground: 240 10% 95%;
+    --sidebar-primary: 275 60% 70%;
+    --sidebar-primary-foreground: 240 8% 12%;
+    --sidebar-accent: 240 7% 15%;
+    --sidebar-accent-foreground: 240 10% 95%;
+    --sidebar-border: 240 5% 30%;
+    --sidebar-ring: 275 60% 70%;
+  }
 }
 
 @layer base {

@@ -24,7 +24,7 @@ export default function ThemeSwitcher() {
       <RadioGroup
         value={theme}
         onValueChange={setTheme}
-        className="grid max-w-md grid-cols-2 md:grid-cols-4 gap-8 pt-2"
+        className="grid max-w-md grid-cols-2 gap-8 pt-2"
       >
         <Label className="[&:has([data-state=checked])>div]:border-primary">
           <RadioGroupItem value="light" className="sr-only" />
@@ -112,6 +112,28 @@ export default function ThemeSwitcher() {
           </div>
           <span className="block w-full p-2 text-center font-normal">
             Lofi September
+          </span>
+        </Label>
+        <Label className="[&:has([data-state=checked])>div]:border-primary">
+          <RadioGroupItem value="lofi-dark-japanese" className="sr-only" />
+          <div className="items-center rounded-md border-2 border-muted bg-[#1e1e2e] p-1 hover:border-accent hover:text-accent-foreground">
+            <div className="space-y-2 rounded-sm bg-[#11111b] p-2">
+              <div className="space-y-2 rounded-md bg-[#28283d] p-2 shadow-sm">
+                <div className="h-2 w-[80px] rounded-lg bg-[#c9a7e6]" />
+                <div className="h-2 w-[100px] rounded-lg bg-[#f5c2e7]" />
+              </div>
+              <div className="flex items-center space-x-2 rounded-md bg-[#28283d] p-2 shadow-sm">
+                <div className="h-4 w-4 rounded-full bg-[#c9a7e6]" />
+                <div className="h-2 w-[100px] rounded-lg bg-[#f5c2e7]" />
+              </div>
+              <div className="flex items-center space-x-2 rounded-md bg-[#28283d] p-2 shadow-sm">
+                <div className="h-4 w-4 rounded-full bg-[#f5c2e7]" />
+                <div className="h-2 w-[100px] rounded-lg bg-[#c9a7e6]" />
+              </div>
+            </div>
+          </div>
+          <span className="block w-full p-2 text-center font-normal">
+            Lofi Dark Japanese
           </span>
         </Label>
       </RadioGroup>
