@@ -103,7 +103,13 @@ export default function KanbanBoard() {
         id: c.id,
         text: c.comment_text,
         timestamp: new Date(parseInt(c.date)).toISOString(),
-      })).sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+        user: {
+          id: c.user.id,
+          username: c.user.username,
+          color: c.user.color,
+          profilePicture: c.user.profilePicture,
+        }
+      })).sort((a,b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
       
       const formattedChecklists = (taskDetails.checklists || []).map((c: any) => ({
         id: c.id,
@@ -113,7 +119,7 @@ export default function KanbanBoard() {
             text: i.name,
             completed: i.resolved,
             orderindex: i.orderindex,
-        })).sort((a: any, b: any) => a.orderindex - b.orderindex),
+        })).sort((a, b) => a.orderindex - b.orderindex),
       }));
 
       const updatedCard: CardData = { 

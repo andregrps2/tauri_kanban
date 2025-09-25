@@ -1,3 +1,10 @@
+export interface UserData {
+  id: number;
+  username: string;
+  color: string;
+  profilePicture: string | null;
+}
+
 export interface LabelData {
   id: string;
   name: string;
@@ -8,6 +15,7 @@ export interface CommentData {
   id: string;
   text: string;
   timestamp: string;
+  user: UserData;
 }
 
 export interface ChecklistItemData {

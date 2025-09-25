@@ -12,8 +12,8 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
-import type { CardData, LabelData, CommentData, ChecklistData, ChecklistItemData } from "@/lib/types";
-import { useEffect, useState } from "react";
+import type { CardData, LabelData, CommentData, ChecklistData, ChecklistItemData, UserData } from "@/lib/types";
+import { useEffect, useState, useRef, useCallback } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,6 +33,7 @@ import { Progress } from "../ui/progress";
 import { MultiSelect } from "../ui/multi-select";
 import * as ClickUpService from "@/lib/clickup-service";
 import { useToast } from "@/hooks/use-toast";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
 const colorClasses = [
   "bg-red-500", "bg-orange-500", "bg-yellow-500", "bg-green-500",
@@ -59,6 +60,9 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
   const [newChecklistTitle, setNewChecklistTitle] = useState("");
   const [newChecklistItem, setNewChecklistItem] = useState<Record<string, string>>({});
   const { toast } = useToast();
+
+  const [pendingItems, setPendingItems] = useState<Record<string, string[]>>({});
+  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     setEditedCard(card);
@@ -122,13 +126,23 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
     if (newComment.trim() === "") return;
     try {
       const createdComment = await ClickUpService.createTaskComment(editedCard.id, newComment.trim());
-      const comment: CommentData = {
-          id: createdComment.id,
-          text: newComment.trim(),
-          timestamp: new Date().toISOString(),
-      };
-      const updatedComments = [...(editedCard.comments || []), comment].sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-      setEditedCard({ ...editedCard, comments: updatedComments });
+      // After adding, we need to refresh to get the full comment object with user details
+      const comments = await ClickUpService.getTaskComments(editedCard.id);
+      const formattedComments = comments.map((c: any) => ({
+        id: c.id,
+        text: c.comment_text,
+        timestamp: new Date(parseInt(c.date)).toISOString(),
+        user: {
+          id: c.user.id,
+          username: c.user.username,
+          color: c.user.color,
+          profilePicture: c.user.profilePicture,
+        }
+      })).sort((a,b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+      
+      const updatedCard = { ...editedCard, comments: formattedComments };
+      setEditedCard(updatedCard);
+      onUpdate(updatedCard);
       setNewComment("");
     } catch (error: any) {
       toast({
@@ -166,31 +180,73 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
       });
     }
   };
+  
+  const processPendingItems = useCallback(async () => {
+    const checklistIdsWithPendingItems = Object.keys(pendingItems).filter(
+      (id) => pendingItems[id].length > 0
+    );
 
-  const handleAddChecklistItem = async (checklistId: string) => {
+    if (checklistIdsWithPendingItems.length === 0) return;
+
+    for (const checklistId of checklistIdsWithPendingItems) {
+      const itemsToCreate = pendingItems[checklistId];
+      // Create items sequentially to preserve order
+      for (const itemName of itemsToCreate) {
+        try {
+          // Calculate orderindex based on existing + pending items before this one
+          const currentChecklist = editedCard.checklists?.find(c => c.id === checklistId);
+          const existingItemCount = currentChecklist?.items.length || 0;
+          await ClickUpService.createChecklistItem(checklistId, itemName, existingItemCount);
+        } catch (error) {
+          console.error(`Failed to create item "${itemName}"`, error);
+          // Optionally show a toast for failed items
+        }
+      }
+    }
+    
+    setPendingItems({}); // Clear the queue
+    await refreshTaskState(); // Refresh with all new items and correct IDs
+
+  }, [pendingItems, editedCard.checklists, onUpdate, toast]);
+  
+  const handleAddChecklistItem = (checklistId: string) => {
     const text = newChecklistItem[checklistId]?.trim();
     if (!text) return;
-  
-    const currentChecklist = editedCard.checklists?.find(c => c.id === checklistId);
-    const orderindex = currentChecklist ? currentChecklist.items.length : 0;
-  
+
+    // Optimistic UI update
+    const tempItemId = `temp-${crypto.randomUUID()}`;
+    const newItem: ChecklistItemData = {
+      id: tempItemId,
+      text,
+      completed: false,
+      orderindex: editedCard.checklists?.find(c => c.id === checklistId)?.items.length || 0,
+    };
+    
+    setEditedCard(prevCard => ({
+      ...prevCard,
+      checklists: prevCard.checklists?.map(c => 
+        c.id === checklistId ? { ...c, items: [...c.items, newItem] } : c
+      )
+    }));
+    
     setNewChecklistItem({ ...newChecklistItem, [checklistId]: "" });
-  
-    try {
-      await ClickUpService.createChecklistItem(checklistId, text, orderindex);
-      await refreshTaskState();
-  
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Failed to add checklist item",
-        description: error.message,
-      });
+
+    // Add to pending queue
+    setPendingItems(prev => ({
+      ...prev,
+      [checklistId]: [...(prev[checklistId] || []), text],
+    }));
+
+    // Debounce the processing
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
     }
+    debounceTimer.current = setTimeout(processPendingItems, 2500);
   };
   
-
   const handleToggleChecklistItem = async (checklistId: string, itemId: string, currentStatus: boolean) => {
+    // If the item is a temporary one, don't do anything
+    if (itemId.startsWith('temp-')) return;
     try {
       await ClickUpService.updateChecklistItem(checklistId, itemId, { resolved: !currentStatus });
       const updatedChecklists = editedCard.checklists?.map(c => {
@@ -215,23 +271,41 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
   };
 
   const handleDeleteChecklistItem = async (checklistId: string, itemId: string) => {
-    try {
-      await ClickUpService.deleteChecklistItem(checklistId, itemId);
-      const updatedChecklists = editedCard.checklists?.map(c => {
-        if (c.id === checklistId) {
-          return { ...c, items: c.items.filter(item => item.id !== itemId) };
+    // If the item is a temporary one, just remove from UI and pending queue
+    if (itemId.startsWith('temp-')) {
+        const itemToRemove = editedCard.checklists?.find(c => c.id === checklistId)?.items.find(i => i.id === itemId);
+        if (itemToRemove) {
+             setPendingItems(prev => ({
+                ...prev,
+                [checklistId]: (prev[checklistId] || []).filter(name => name !== itemToRemove.text)
+            }));
         }
-        return c;
-      });
-      setEditedCard({ ...editedCard, checklists: updatedChecklists });
-    } catch (error: any) {
-       toast({
-        variant: "destructive",
-        title: "Failed to delete checklist item",
-        description: error.message,
-      });
+    } else {
+        try {
+            await ClickUpService.deleteChecklistItem(checklistId, itemId);
+        } catch (error: any) {
+           toast({
+            variant: "destructive",
+            title: "Failed to delete checklist item",
+            description: error.message,
+          });
+          return; // Don't update UI if API call fails
+        }
     }
+
+    // Optimistic UI update for both cases
+    const updatedChecklists = editedCard.checklists?.map(c => {
+      if (c.id === checklistId) {
+        return { ...c, items: c.items.filter(item => item.id !== itemId) };
+      }
+      return c;
+    });
+    setEditedCard({ ...editedCard, checklists: updatedChecklists });
   };
+  
+  const getInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -368,15 +442,28 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
                   </Popover>
               </MultiSelect>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-4">
               <Label>Comments</Label>
-              <div className="space-y-2 max-h-40 overflow-y-auto pr-2 border rounded-md p-2 mt-2">
+              <div className="space-y-3 max-h-60 overflow-y-auto pr-2 border rounded-md p-3 mt-2">
                   {editedCard.comments?.map(comment => (
-                      <div key={comment.id} className="text-sm p-2 bg-muted/50 rounded-md">
-                          <p className="whitespace-pre-wrap">{comment.text}</p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                              {new Date(comment.timestamp).toLocaleString()}
-                          </p>
+                      <div key={comment.id} className="flex items-start space-x-3">
+                          <Avatar className="h-8 w-8">
+                              <AvatarImage src={comment.user.profilePicture || undefined} alt={comment.user.username} />
+                              <AvatarFallback style={{backgroundColor: comment.user.color}}>
+                                  {getInitials(comment.user.username)}
+                              </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1">
+                              <div className="flex items-baseline space-x-2">
+                                <p className="font-semibold text-sm">{comment.user.username}</p>
+                                <p className="text-xs text-muted-foreground">
+                                    {new Date(comment.timestamp).toLocaleString()}
+                                </p>
+                              </div>
+                              <div className="text-sm p-2 bg-muted/50 rounded-md mt-1">
+                                <p className="whitespace-pre-wrap">{comment.text}</p>
+                              </div>
+                          </div>
                       </div>
                   ))}
                   {(!editedCard.comments || editedCard.comments.length === 0) && (
