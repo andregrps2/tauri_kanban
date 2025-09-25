@@ -149,30 +149,38 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
   const handleAddChecklistItem = async (checklistId: string) => {
     const text = newChecklistItem[checklistId]?.trim();
     if (!text) return;
+
+    // Optimistic UI Update
+    const tempId = `temp-${crypto.randomUUID()}`;
+    const newItem: ChecklistItemData = {
+      id: tempId,
+      text: text,
+      completed: false,
+    };
+
+    const updatedChecklists = editedCard.checklists?.map(c => 
+      c.id === checklistId ? { ...c, items: [...c.items, newItem] } : c
+    );
+    setEditedCard({ ...editedCard, checklists: updatedChecklists });
+    setNewChecklistItem({ ...newChecklistItem, [checklistId]: "" });
+
+    // API Call (fire-and-forget)
     try {
-      const response = await ClickUpService.createChecklistItem(checklistId, text);
-      const createdItem = response.item;
-
-      if (!createdItem || !createdItem.id) {
-         throw new Error(`Invalid response from API: ${JSON.stringify(response)}`);
-      }
-
-      const newItem: ChecklistItemData = {
-        id: createdItem.id,
-        text: createdItem.name,
-        completed: false,
-      };
-      const updatedChecklists = editedCard.checklists?.map(c => 
-        c.id === checklistId ? { ...c, items: [...c.items, newItem] } : c
-      );
-      setEditedCard({ ...editedCard, checklists: updatedChecklists });
-      setNewChecklistItem({ ...newChecklistItem, [checklistId]: "" });
+      await ClickUpService.createChecklistItem(checklistId, text);
+      // Optional: If you need the real ID for subsequent actions before a refresh,
+      // you could find the temp item and update its ID from the response.
+      // For now, we assume a refresh/re-open of the card will sync the correct state.
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Failed to add checklist item",
-        description: error.message,
+        title: "Failed to add checklist item to ClickUp",
+        description: "The item was added to the UI but failed to save. Please refresh.",
       });
+      // Optional: Revert optimistic update on failure
+      const revertedChecklists = editedCard.checklists?.map(c => 
+        c.id === checklistId ? { ...c, items: c.items.filter(i => i.id !== tempId) } : c
+      );
+      setEditedCard({ ...editedCard, checklists: revertedChecklists });
     }
   };
 
