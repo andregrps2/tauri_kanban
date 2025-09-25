@@ -88,9 +88,19 @@ export default function KanbanBoard() {
       const formattedComments = comments.map((c: any) => ({
         id: c.id,
         text: c.comment_text,
-        timestamp: c.date,
+        timestamp: new Date(parseInt(c.date)).toISOString(),
+      })).sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+      // We need to update the card in the columns state as well to reflect the new comments count
+      const updatedCard = { ...card, comments: formattedComments };
+      setEditingCard(updatedCard);
+      
+      const newColumns = columns.map(col => ({
+        ...col,
+        cards: col.cards.map(c => c.id === card.id ? updatedCard : c)
       }));
-      setEditingCard({ ...card, comments: formattedComments });
+      setColumns(newColumns);
+
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -138,8 +148,6 @@ export default function KanbanBoard() {
 
   const handleUpdateCard = async (updatedCard: CardData) => {
     try {
-      const originalCard = allCards.find(c => c.id === updatedCard.id);
-
       // Optimistic update for UI responsiveness
       const newColumns = columns.map((col) => ({
         ...col,
@@ -149,15 +157,6 @@ export default function KanbanBoard() {
       }));
       setColumns(newColumns);
       
-      // Check for new comments and create them
-      if (updatedCard.comments && originalCard) {
-        const originalCommentIds = (editingCard?.comments || []).map(c => c.id);
-        const newComments = updatedCard.comments.filter(c => !originalCommentIds.includes(c.id));
-        for (const comment of newComments) {
-          await ClickUpService.createTaskComment(updatedCard.id, comment.text);
-        }
-      }
-
       // API call to update the task details
       await ClickUpService.updateTask(updatedCard.id, {
         name: updatedCard.title,

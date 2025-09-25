@@ -32,6 +32,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { Checkbox } from "../ui/checkbox";
 import { Progress } from "../ui/progress";
 import { MultiSelect } from "../ui/multi-select";
+import * as ClickUpService from "@/lib/clickup-service";
+import { useToast } from "@/hooks/use-toast";
 
 const colorClasses = [
   "bg-red-500", "bg-orange-500", "bg-yellow-500", "bg-green-500",
@@ -56,6 +58,7 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
   const [newComment, setNewComment] = useState("");
   const [newChecklistTitle, setNewChecklistTitle] = useState("");
   const [newChecklistItem, setNewChecklistItem] = useState<Record<string, string>>({});
+  const { toast } = useToast();
 
   useEffect(() => {
     setEditedCard(card);
@@ -89,16 +92,25 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
     setEditedCard({...editedCard, labels: updatedCardLabels});
   };
 
-  const handleAddComment = () => {
+  const handleAddComment = async () => {
     if (newComment.trim() === "") return;
-    const comment: CommentData = {
-        id: `comment-${crypto.randomUUID()}`,
-        text: newComment.trim(),
-        timestamp: new Date().toISOString(),
-    };
-    const updatedComments = [...(editedCard.comments || []), comment].sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-    setEditedCard({ ...editedCard, comments: updatedComments });
-    setNewComment("");
+    try {
+      const createdComment = await ClickUpService.createTaskComment(editedCard.id, newComment.trim());
+      const comment: CommentData = {
+          id: createdComment.id,
+          text: newComment.trim(),
+          timestamp: new Date().toISOString(),
+      };
+      const updatedComments = [...(editedCard.comments || []), comment].sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      setEditedCard({ ...editedCard, comments: updatedComments });
+      setNewComment("");
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Failed to add comment",
+        description: error.message,
+      });
+    }
   };
 
   const handleAddChecklist = () => {
@@ -364,5 +376,3 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
     </Dialog>
   );
 }
-
-    
