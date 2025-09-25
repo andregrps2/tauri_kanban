@@ -38,25 +38,6 @@ async function fetchClickUpAPI(endpoint: string, options: RequestInit = {}) {
   return response.json();
 }
 
-// Get user's workspaces (teams)
-export async function getWorkspaces() {
-  const { teams } = await fetchClickUpAPI('/team');
-  return teams;
-}
-
-// Get spaces for a given workspace
-export async function getSpaces(teamId: string) {
-    const { spaces } = await fetchClickUpAPI(`/team/${teamId}/space`);
-    return spaces;
-}
-
-// Get lists for a given space
-export async function getLists(spaceId: string) {
-    const { lists } = await fetchClickUpAPI(`/space/${spaceId}/list`);
-    return lists;
-}
-
-
 // Get statuses (columns) for the configured list
 export async function getListStatuses() {
   const { listId } = getCredentials();
