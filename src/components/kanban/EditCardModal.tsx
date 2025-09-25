@@ -293,7 +293,7 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
             <div className="space-y-2">
               <Label>Labels</Label>
               <MultiSelect
-                options={allLabels.map(l => ({ value: l.id, label: l.name }))}
+                options={allLabels.map(l => ({ value: l.id, label: l.name, color: l.color }))}
                 onValueChange={handleLabelSelect}
                 defaultValue={editedCard.labels?.map(l => l.id) || []}
                 placeholder="Select labels..."
@@ -364,3 +364,5 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
     </Dialog>
   );
 }
+
+    

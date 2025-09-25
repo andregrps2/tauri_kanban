@@ -50,6 +50,7 @@ interface MultiSelectProps
     label: string;
     value: string;
     icon?: React.ComponentType<{ className?: string }>;
+    color?: string;
   }[];
   onValueChange: (value: string[]) => void;
   defaultValue: string[];
@@ -126,8 +127,9 @@ const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>(
                       <Badge
                         key={value}
                         className={cn(
-                          "mr-2",
-                          animation > 0 && "animate-in fade-in-0"
+                          "mr-2 text-white",
+                          animation > 0 && "animate-in fade-in-0",
+                          option?.color
                         )}
                       >
                         {IconComponent && (
@@ -213,6 +215,9 @@ const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>(
                     {option.icon && (
                       <option.icon className="mr-2 h-4 w-4 text-muted-foreground" />
                     )}
+                    {option.color && (
+                        <div className={cn("w-4 h-4 rounded-full mr-2", option.color)} />
+                    )}
                     <span>{option.label}</span>
                   </CommandItem>
                 ))}
@@ -234,3 +239,5 @@ const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>(
 MultiSelect.displayName = "MultiSelect";
 
 export { MultiSelect };
+
+    
