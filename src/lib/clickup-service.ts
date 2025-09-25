@@ -109,12 +109,10 @@ export async function createTaskComment(taskId: string, commentText: string) {
 // --- Checklist Functions ---
 
 export async function createChecklist(taskId: string, name: string) {
-  const response = await fetchClickUpAPI(`/task/${taskId}/checklist`, {
+  return fetchClickUpAPI(`/task/${taskId}/checklist`, {
     method: 'POST',
     body: JSON.stringify({ name }),
   });
-  // The API nests the created checklist object inside a 'checklist' key.
-  return response.checklist;
 }
 
 export async function deleteChecklist(checklistId: string) {
