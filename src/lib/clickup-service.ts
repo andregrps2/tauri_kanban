@@ -38,14 +38,27 @@ async function fetchClickUpAPI(endpoint: string, options: RequestInit = {}) {
   return response.json();
 }
 
+// Get user's workspaces (teams)
+export async function getWorkspaces() {
+  const { teams } = await fetchClickUpAPI('/team');
+  return teams;
+}
+
+// Get lists for a given workspace
+export async function getLists(teamId: string) {
+    const { lists } = await fetchClickUpAPI(`/team/${teamId}/list`);
+    return lists;
+}
+
+
 // Get statuses (columns) for the configured list
 export async function getListStatuses() {
   const { listId } = getCredentials();
   if (!listId) {
     throw new Error("ClickUp List ID not found. Please set it in Settings.");
   }
-  const { statuses } = await fetchClickUpAPI(`/list/${listId}`);
-  return statuses;
+  const data = await fetchClickUpAPI(`/list/${listId}`);
+  return data.statuses;
 }
 
 // Get tasks for the configured list
@@ -58,8 +71,6 @@ export async function getTasks() {
   const { tasks } = await fetchClickUpAPI(`/list/${listId}/task`);
   return tasks;
 }
-
-// --- Placeholder functions for future implementation ---
 
 export async function createTask(title: string, status: string) {
   const { listId } = getCredentials();
