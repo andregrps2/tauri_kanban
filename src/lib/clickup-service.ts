@@ -70,6 +70,9 @@ export async function getTasks() {
 
 export async function createTask(title: string, status: string) {
   const { listId } = getCredentials();
+   if (!listId) {
+    throw new Error("ClickUp List ID not found. Please set it in Settings.");
+  }
   return fetchClickUpAPI(`/list/${listId}/task`, {
     method: 'POST',
     body: JSON.stringify({ name: title, status }),
@@ -104,11 +107,6 @@ export async function createTaskComment(taskId: string, commentText: string) {
 }
 
 // --- Checklist Functions ---
-
-export async function getChecklists(taskId: string) {
-  const data = await fetchClickUpAPI(`/task/${taskId}`);
-  return data.checklists || [];
-}
 
 export async function createChecklist(taskId: string, name: string) {
   return fetchClickUpAPI(`/task/${taskId}/checklist`, {

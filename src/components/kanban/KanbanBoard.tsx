@@ -135,7 +135,16 @@ export default function KanbanBoard() {
       const newCard: CardData = {
         id: newTask.id,
         title: newTask.name,
-        statusId: column.id,
+        statusId: newTask.status.id,
+        description: newTask.description || "",
+        dueDate: newTask.due_date ? new Date(parseInt(newTask.due_date)).toISOString().split('T')[0] : undefined,
+        labels: (newTask.tags || []).map((tag: any) => ({
+          id: tag.name,
+          name: tag.name,
+          color: 'bg-gray-500'
+        })),
+        comments: [], // Comments are not returned on task creation
+        checklists: (newTask.checklists || []),
       };
       const newColumns = columns.map((col) => {
         if (col.id === columnId) {
