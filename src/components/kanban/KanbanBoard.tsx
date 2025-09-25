@@ -89,9 +89,14 @@ export default function KanbanBoard() {
 
   const handleCardClick = async (card: CardData) => {
     try {
+      // Set a temporary card to open the modal immediately
       setEditingCard(card);
       
-      const comments = await ClickUpService.getTaskComments(card.id);
+      // Fetch the latest full task details and comments in parallel
+      const [taskDetails, comments] = await Promise.all([
+        ClickUpService.getTask(card.id),
+        ClickUpService.getTaskComments(card.id)
+      ]);
 
       const formattedComments = comments.map((c: any) => ({
         id: c.id,
@@ -99,9 +104,27 @@ export default function KanbanBoard() {
         timestamp: new Date(parseInt(c.date)).toISOString(),
       })).sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
       
-      const updatedCard = { ...card, comments: formattedComments };
+      const formattedChecklists = (taskDetails.checklists || []).map((c: any) => ({
+        id: c.id,
+        title: c.name,
+        items: c.items.map((i: any) => ({
+          id: i.id,
+          text: i.name,
+          completed: i.resolved,
+        })).sort((a:any, b:any) => a.orderindex - b.orderindex),
+      }));
+
+      const updatedCard: CardData = { 
+        ...card, 
+        comments: formattedComments,
+        checklists: formattedChecklists,
+        description: taskDetails.description || "",
+      };
+      
+      // Update the modal with the full, fresh data
       setEditingCard(updatedCard);
       
+      // Update the card in the main board state as well
       const newColumns = columns.map(col => ({
         ...col,
         cards: col.cards.map(c => c.id === card.id ? updatedCard : c)
@@ -114,6 +137,8 @@ export default function KanbanBoard() {
         title: "Failed to load card details",
         description: error.message,
       });
+      // Close the modal if fetching fails
+      setEditingCard(null);
     }
   };
 

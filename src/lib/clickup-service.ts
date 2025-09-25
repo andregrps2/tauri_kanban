@@ -58,7 +58,7 @@ export async function getListStatuses() {
   return listData.statuses || [];
 }
 
-// Get tasks for the configured list
+// Get all tasks for the configured list
 export async function getTasks() {
   const { listId } = getCredentials();
   if (!listId) {
@@ -67,6 +67,11 @@ export async function getTasks() {
   // Added include_checklists=true to the query parameters
   const { tasks } = await fetchClickUpAPI(`/list/${listId}/task?subtasks=true&include_checklists=true`);
   return tasks;
+}
+
+// Get a single task's details
+export async function getTask(taskId: string) {
+    return fetchClickUpAPI(`/task/${taskId}?subtasks=true&include_checklists=true`);
 }
 
 
@@ -126,11 +131,10 @@ export async function deleteChecklist(checklistId: string) {
 }
 
 export async function createChecklistItem(checklistId: string, name: string) {
-  const response = await fetchClickUpAPI(`/checklist/${checklistId}/checklist_item`, {
+  return fetchClickUpAPI(`/checklist/${checklistId}/checklist_item`, {
     method: 'POST',
     body: JSON.stringify({ name }),
   });
-  return response.item;
 }
 
 export async function updateChecklistItem(checklistId: string, checklistItemId: string, data: { name?: string, resolved?: boolean }) {
