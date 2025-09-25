@@ -172,34 +172,13 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
     const text = newChecklistItem[checklistId]?.trim();
     if (!text) return;
   
-    // Optimistic update
-    const tempId = `temp-${crypto.randomUUID()}`;
-    const newOptimisticItem: ChecklistItemData = {
-      id: tempId,
-      text,
-      completed: false,
-      // Place it at the end for now
-      orderindex: (editedCard.checklists?.find(c => c.id === checklistId)?.items.length || 0),
-    };
-  
-    setEditedCard(prevCard => ({
-      ...prevCard,
-      checklists: prevCard.checklists?.map(c => 
-        c.id === checklistId 
-          ? { ...c, items: [...c.items, newOptimisticItem] }
-          : c
-      )
-    }));
-  
-    // Clear the input field
+    const currentChecklist = editedCard.checklists?.find(c => c.id === checklistId);
+    const orderindex = currentChecklist ? currentChecklist.items.length : 0;
+
     setNewChecklistItem({ ...newChecklistItem, [checklistId]: "" });
   
     try {
-      // API Call in the background
-      await ClickUpService.createChecklistItem(checklistId, text);
-      
-      // Silently refresh the task state in the background to get real IDs and order
-      // This won't cause a UI flash but ensures data consistency for subsequent actions.
+      await ClickUpService.createChecklistItem(checklistId, text, orderindex);
       await refreshTaskState();
   
     } catch (error: any) {
@@ -208,15 +187,6 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
         title: "Failed to add checklist item",
         description: `API Response: ${error.message}`,
       });
-      // Revert optimistic update on failure
-      setEditedCard(prevCard => ({
-        ...prevCard,
-        checklists: prevCard.checklists?.map(c => 
-          c.id === checklistId 
-            ? { ...c, items: c.items.filter(item => item.id !== tempId) }
-            : c
-        )
-      }));
     }
   };
   

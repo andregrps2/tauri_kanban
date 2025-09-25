@@ -130,10 +130,10 @@ export async function deleteChecklist(checklistId: string) {
   });
 }
 
-export async function createChecklistItem(checklistId: string, name: string) {
+export async function createChecklistItem(checklistId: string, name: string, orderindex?: number) {
   const response = await fetchClickUpAPI(`/checklist/${checklistId}/checklist_item`, {
     method: 'POST',
-    body: JSON.stringify({ name }),
+    body: JSON.stringify({ name, orderindex }),
   });
   return response.item;
 }
