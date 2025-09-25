@@ -2,6 +2,7 @@ import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/components/theme-provider';
+import FallingLeaves from '@/components/FallingLeaves';
 
 export const metadata: Metadata = {
   title: 'Tauri Kanban Board',
@@ -27,6 +28,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <FallingLeaves />
           {children}
           <Toaster />
         </ThemeProvider>
