@@ -65,7 +65,7 @@ export async function getTasks() {
     throw new Error("ClickUp List ID not found. Please set it in Settings.");
   }
   // Added include_checklists=true to the query parameters
-  const { tasks } = await fetchClickUpAPI(`/list/${listId}/task?include_checklists=true`);
+  const { tasks } = await fetchClickUpAPI(`/list/${listId}/task?subtasks=true&include_checklists=true`);
   return tasks;
 }
 
