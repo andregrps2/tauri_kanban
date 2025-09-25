@@ -4,13 +4,10 @@
 
 const API_BASE_URL = 'https://api.clickup.com/api/v2';
 
-// Helper to get credentials from localStorage
+// Helper to get credentials from environment variables
 function getCredentials() {
-  if (typeof window === 'undefined') {
-    return { token: null, listId: null };
-  }
-  const token = localStorage.getItem('clickup_api_token');
-  const listId = localStorage.getItem('clickup_list_id');
+  const token = process.env.NEXT_PUBLIC_CLICKUP_API_TOKEN;
+  const listId = process.env.NEXT_PUBLIC_CLICKUP_LIST_ID;
   return { token, listId };
 }
 
@@ -18,7 +15,7 @@ function getCredentials() {
 async function fetchClickUpAPI(endpoint: string, options: RequestInit = {}) {
   const { token } = getCredentials();
   if (!token) {
-    throw new Error("ClickUp API token not found. Please set it in Settings.");
+    throw new Error("ClickUp API token not found. Please set NEXT_PUBLIC_CLICKUP_API_TOKEN in your .env.local file.");
   }
 
   const headers = {
@@ -52,7 +49,7 @@ async function fetchClickUpAPI(endpoint: string, options: RequestInit = {}) {
 export async function getListStatuses() {
   const { listId } = getCredentials();
   if (!listId) {
-    throw new Error("ClickUp List ID not found. Please set it in Settings.");
+    throw new Error("ClickUp List ID not found. Please set NEXT_PUBLIC_CLICKUP_LIST_ID in your .env.local file.");
   }
   const listData = await fetchClickUpAPI(`/list/${listId}`);
   return listData.statuses || [];
@@ -62,7 +59,7 @@ export async function getListStatuses() {
 export async function getTasks() {
   const { listId } = getCredentials();
   if (!listId) {
-    throw new Error("ClickUp List ID not found. Please set it in Settings.");
+    throw new Error("ClickUp List ID not found. Please set NEXT_PUBLIC_CLICKUP_LIST_ID in your .env.local file.");
   }
   // Added include_checklists=true to the query parameters
   const { tasks } = await fetchClickUpAPI(`/list/${listId}/task?subtasks=true&include_checklists=true`);
@@ -79,7 +76,7 @@ export async function getTask(taskId: string) {
 export async function createTask(title: string, status: string) {
   const { listId } = getCredentials();
    if (!listId) {
-    throw new Error("ClickUp List ID not found. Please set it in Settings.");
+    throw new Error("ClickUp List ID not found. Please set NEXT_PUBLIC_CLICKUP_LIST_ID in your .env.local file.");
   }
   return fetchClickUpAPI(`/list/${listId}/task`, {
     method: 'POST',
