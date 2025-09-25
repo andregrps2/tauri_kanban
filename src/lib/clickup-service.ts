@@ -44,9 +44,15 @@ export async function getWorkspaces() {
   return teams;
 }
 
-// Get lists for a given workspace
-export async function getLists(teamId: string) {
-    const { lists } = await fetchClickUpAPI(`/team/${teamId}/list`);
+// Get spaces for a given workspace
+export async function getSpaces(teamId: string) {
+    const { spaces } = await fetchClickUpAPI(`/team/${teamId}/space`);
+    return spaces;
+}
+
+// Get lists for a given space
+export async function getLists(spaceId: string) {
+    const { lists } = await fetchClickUpAPI(`/space/${spaceId}/list`);
     return lists;
 }
 

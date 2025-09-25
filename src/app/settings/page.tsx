@@ -47,8 +47,13 @@ export default function SettingsPage() {
       const workspaces = await ClickUpService.getWorkspaces();
       if (workspaces && workspaces.length > 0) {
         // Using the first workspace for simplicity
-        const fetchedLists = await ClickUpService.getLists(workspaces[0].id);
-        setLists(fetchedLists);
+        const spaces = await ClickUpService.getSpaces(workspaces[0].id);
+        const allLists: ClickUpList[] = [];
+        for (const space of spaces) {
+            const spaceLists = await ClickUpService.getLists(space.id);
+            allLists.push(...spaceLists);
+        }
+        setLists(allLists);
       } else {
         setLists([]);
       }
@@ -138,6 +143,7 @@ export default function SettingsPage() {
                       <SelectValue placeholder={
                           isLoadingLists ? "Loading lists..." :
                           !apiToken ? "Enter API token first" :
+                          lists.length === 0 ? "No lists found" :
                           "Select a list"
                         } />
                     </SelectTrigger>
