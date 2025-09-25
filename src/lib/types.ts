@@ -30,6 +30,7 @@ export interface CardData {
   labels?: LabelData[];
   comments?: CommentData[];
   checklists?: ChecklistData[];
+  statusId?: string; // To know which column it belongs to
 }
 
 export interface ColumnData {

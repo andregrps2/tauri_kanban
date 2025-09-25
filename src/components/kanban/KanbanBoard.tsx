@@ -8,127 +8,163 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Plus } from "lucide-react";
 import { Skeleton } from "../ui/skeleton";
-
-const defaultColumns: ColumnData[] = [
-  {
-    id: "col-1",
-    title: "To Do",
-    cards: [
-      { id: "card-1", title: "Design the UI", description: "Create mockups and wireframes in Figma.", labels: [{id: 'label-1', name: 'Design', color: 'bg-purple-500'}], comments: [], checklists: [] },
-      { id: "card-2", title: "Develop the Kanban board component", description: "Use Next.js and shadcn/ui.", labels: [{id: 'label-2', name: 'Dev', color: 'bg-blue-500'}], comments: [], checklists: [] },
-    ],
-  },
-  {
-    id: "col-2",
-    title: "In Progress",
-    cards: [
-      { id: "card-3", title: "Implement drag and drop functionality", description: "Use HTML5 Drag and Drop API.", labels: [{id: 'label-2', name: 'Dev', color: 'bg-blue-500'}], comments: [], checklists: [] },
-    ],
-  },
-  {
-    id: "col-3",
-    title: "Done",
-    cards: [
-       { id: "card-4", title: "Set up Next.js project", description: "Initialize with create-next-app.", labels: [], comments: [], checklists: [] },
-    ],
-  },
-];
-
-const defaultLabels: LabelData[] = [
-  { id: "label-1", name: "Design", color: "bg-purple-500" },
-  { id: "label-2", name: "Dev", color: "bg-blue-500" },
-  { id: "label-3", name: "Bug", color: "bg-red-500" },
-  { id: "label-4", name: "Feature", color: "bg-green-500" },
-];
-
+import * as ClickUpService from "@/lib/clickup-service";
+import { useToast } from "@/hooks/use-toast";
 
 export default function KanbanBoard() {
   const [columns, setColumns] = useState<ColumnData[]>([]);
+  const [allCards, setAllCards] = useState<CardData[]>([]);
   const [labels, setLabels] = useState<LabelData[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [newColumnName, setNewColumnName] = useState("");
   const [editingCard, setEditingCard] = useState<CardData | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
-    try {
-      const savedBoard = localStorage.getItem('kanbanBoard');
-      const savedLabels = localStorage.getItem('kanbanLabels');
-      if (savedBoard) {
-        setColumns(JSON.parse(savedBoard));
-      } else {
-        setColumns(defaultColumns);
-      }
-      if (savedLabels) {
-        setLabels(JSON.parse(savedLabels));
-      } else {
-        setLabels(defaultLabels);
-      }
-    } catch (error) {
-      console.error("Failed to parse data from localStorage", error);
-      setColumns(defaultColumns);
-      setLabels(defaultLabels);
-    }
-    setIsLoaded(true);
-  }, []);
+    const fetchData = async () => {
+      try {
+        const statuses = await ClickUpService.getListStatuses();
+        const tasks = await ClickUpService.getTasks();
 
-  useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem('kanbanBoard', JSON.stringify(columns));
-      localStorage.setItem('kanbanLabels', JSON.stringify(labels));
-    }
-  }, [columns, labels, isLoaded]);
+        // Map ClickUp statuses to our ColumnData format
+        const boardColumns: ColumnData[] = statuses.map((status: any) => ({
+          id: status.id,
+          title: status.status,
+          cards: [], // We'll populate this next
+        }));
+
+        // Map ClickUp tasks to our CardData format
+        const boardCards: CardData[] = tasks.map((task: any) => ({
+          id: task.id,
+          title: task.name,
+          description: task.description || "",
+          statusId: task.status.id,
+          dueDate: task.due_date ? new Date(parseInt(task.due_date)).toISOString().split('T')[0] : undefined,
+          labels: task.tags.map((tag: any) => ({
+            id: tag.name, // ClickUp tags don't have a stable ID via this endpoint
+            name: tag.name,
+            color: 'bg-gray-500' // ClickUp API doesn't provide tag colors here
+          })),
+          comments: [], // Comments would need a separate fetch
+          checklists: [], // Checklists would need a separate fetch
+        }));
+
+        // Distribute cards into their respective columns
+        boardColumns.forEach(col => {
+          col.cards = boardCards.filter(card => card.statusId === col.id);
+        });
+
+        // Collect all unique labels
+        const allBoardLabels = boardCards.flatMap(card => card.labels || [])
+          .filter((label, index, self) => 
+            index === self.findIndex((l) => l.id === label.id)
+          );
+
+        setColumns(boardColumns);
+        setAllCards(boardCards);
+        setLabels(allBoardLabels);
+
+      } catch (error: any) {
+        toast({
+          variant: "destructive",
+          title: "Failed to load data from ClickUp",
+          description: error.message,
+        });
+        console.error(error);
+      } finally {
+        setIsLoaded(true);
+      }
+    };
+    
+    fetchData();
+  }, [toast]);
+
 
   const handleAddColumn = () => {
-    if (newColumnName.trim() === "") return;
-    const newColumn: ColumnData = {
-      id: `col-${crypto.randomUUID()}`,
-      title: newColumnName,
-      cards: [],
-    };
-    setColumns([...columns, newColumn]);
-    setNewColumnName("");
+    toast({ title: "Note", description: "Column management should be done in ClickUp." });
   };
 
   const handleDeleteColumn = (columnId: string) => {
-    setColumns(columns.filter((col) => col.id !== columnId));
+    toast({ title: "Note", description: "Column management should be done in ClickUp." });
   };
   
-  const handleAddCard = (columnId: string, cardTitle: string) => {
-    const newCard: CardData = {
-      id: `card-${crypto.randomUUID()}`,
-      title: cardTitle,
-      description: "",
-      labels: [],
-      comments: [],
-      checklists: [],
-    };
-    const newColumns = columns.map((col) => {
-      if (col.id === columnId) {
-        return { ...col, cards: [...col.cards, newCard] };
-      }
-      return col;
-    });
-    setColumns(newColumns);
+  const handleAddCard = async (columnId: string, cardTitle: string) => {
+    const column = columns.find(c => c.id === columnId);
+    if (!column) return;
+
+    try {
+      const newTask = await ClickUpService.createTask(cardTitle, column.title);
+      const newCard: CardData = {
+        id: newTask.id,
+        title: newTask.name,
+        statusId: column.id,
+      };
+      const newColumns = columns.map((col) => {
+        if (col.id === columnId) {
+          return { ...col, cards: [...col.cards, newCard] };
+        }
+        return col;
+      });
+      setColumns(newColumns);
+    } catch (error: any) {
+       toast({
+          variant: "destructive",
+          title: "Failed to create card",
+          description: error.message,
+        });
+    }
   };
 
-  const handleUpdateCard = (updatedCard: CardData) => {
-    const newColumns = columns.map((col) => ({
-      ...col,
-      cards: col.cards.map((card) =>
-        card.id === updatedCard.id ? updatedCard : card
-      ),
-    }));
-    setColumns(newColumns);
-    setEditingCard(null);
+  const handleUpdateCard = async (updatedCard: CardData) => {
+    try {
+      // Optimistic update
+      const newColumns = columns.map((col) => ({
+        ...col,
+        cards: col.cards.map((card) =>
+          card.id === updatedCard.id ? updatedCard : card
+        ),
+      }));
+      setColumns(newColumns);
+      setEditingCard(null);
+
+      // API call
+      await ClickUpService.updateTask(updatedCard.id, {
+        name: updatedCard.title,
+        description: updatedCard.description,
+        due_date: updatedCard.dueDate ? new Date(updatedCard.dueDate).getTime() : null,
+      });
+
+    } catch (error: any) {
+       toast({
+          variant: "destructive",
+          title: "Failed to update card",
+          description: error.message,
+        });
+        // Here you might want to revert the optimistic update
+    }
   };
 
-  const handleDeleteCard = (cardId: string) => {
-    const newColumns = columns.map((col) => ({
-      ...col,
-      cards: col.cards.filter((card) => card.id !== cardId),
-    }));
-    setColumns(newColumns);
-    setEditingCard(null);
+  const handleDeleteCard = async (cardId: string) => {
+    try {
+       // Optimistic delete
+      const newColumns = columns.map((col) => ({
+        ...col,
+        cards: col.cards.filter((card) => card.id !== cardId),
+      }));
+      setColumns(newColumns);
+      setEditingCard(null);
+
+      // API call
+      await ClickUpService.deleteTask(cardId);
+      
+    } catch(error: any) {
+       toast({
+          variant: "destructive",
+          title: "Failed to delete card",
+          description: error.message,
+        });
+       // Revert optimistic delete if API call fails
+    }
   };
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, card: CardData, sourceColumnId: string) => {
@@ -140,12 +176,14 @@ export default function KanbanBoard() {
     e.currentTarget.classList.remove("dragging");
   };
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>, targetColumnId: string) => {
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>, targetColumnId: string) => {
     const { cardId, sourceColumnId } = JSON.parse(e.dataTransfer.getData("cardInfo"));
     
     if (sourceColumnId === targetColumnId) return;
 
     let cardToMove: CardData | undefined;
+    
+    // Find the card and remove it from the source column (optimistic update)
     const newColumns = columns.map(col => {
         if (col.id === sourceColumnId) {
             cardToMove = col.cards.find(card => card.id === cardId);
@@ -155,13 +193,28 @@ export default function KanbanBoard() {
     });
 
     if (cardToMove) {
+        // Add the card to the target column (optimistic update)
         const finalColumns = newColumns.map(col => {
             if (col.id === targetColumnId) {
-                return { ...col, cards: [...col.cards, cardToMove!] };
+                return { ...col, cards: [...col.cards, { ...cardToMove!, statusId: col.id }] };
             }
             return col;
         });
         setColumns(finalColumns);
+        
+        // API Call
+        try {
+          const targetColumn = finalColumns.find(c => c.id === targetColumnId);
+          if (!targetColumn) throw new Error("Target column not found");
+          await ClickUpService.updateTask(cardId, { status: targetColumn.title });
+        } catch (error: any) {
+           toast({
+              variant: "destructive",
+              title: "Failed to move card",
+              description: error.message,
+            });
+          // Revert state on failure
+        }
     }
   };
 
@@ -202,8 +255,9 @@ export default function KanbanBoard() {
               <Input
                 value={newColumnName}
                 onChange={(e) => setNewColumnName(e.target.value)}
-                placeholder="Column Name"
+                placeholder="Enter in ClickUp"
                 onKeyDown={(e) => e.key === 'Enter' && handleAddColumn()}
+                disabled
               />
               <Button onClick={handleAddColumn} size="icon">
                 <Plus className="h-4 w-4" />

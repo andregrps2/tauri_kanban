@@ -8,12 +8,17 @@ import { Label } from '@/components/ui/label';
 
 export default function SettingsPage() {
   const [apiToken, setApiToken] = useState('');
+  const [listId, setListId] = useState('');
 
   useEffect(() => {
-    // Load the token from localStorage when the component mounts
-    const savedToken = localStorage.getItem('apiToken');
+    // Load saved settings from localStorage when the component mounts
+    const savedToken = localStorage.getItem('clickup_api_token');
+    const savedListId = localStorage.getItem('clickup_list_id');
     if (savedToken) {
       setApiToken(savedToken);
+    }
+    if (savedListId) {
+      setListId(savedListId);
     }
   }, []);
 
@@ -21,7 +26,13 @@ export default function SettingsPage() {
     const token = e.target.value;
     setApiToken(token);
     // Save the token to localStorage
-    localStorage.setItem('apiToken', token);
+    localStorage.setItem('clickup_api_token', token);
+  };
+  
+  const handleListIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const id = e.target.value;
+    setListId(id);
+    localStorage.setItem('clickup_list_id', id);
   };
 
   return (
@@ -41,7 +52,7 @@ export default function SettingsPage() {
               </div>
             </div>
             <div>
-              <h2 className="text-xl font-semibold mb-4">API Configuration</h2>
+              <h2 className="text-xl font-semibold mb-4">ClickUp API Configuration</h2>
               <div className="p-4 border rounded-lg space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="api-token">API Token</Label>
@@ -51,6 +62,16 @@ export default function SettingsPage() {
                     placeholder="Enter your API token"
                     value={apiToken}
                     onChange={handleTokenChange}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="list-id">List ID</Label>
+                  <Input
+                    id="list-id"
+                    type="text"
+                    placeholder="Enter the ClickUp List ID"
+                    value={listId}
+                    onChange={handleListIdChange}
                   />
                 </div>
               </div>
