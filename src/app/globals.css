@@ -76,6 +76,40 @@ body {
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
+  .cyberpunk {
+    --background: 233 36% 10%; /* Very dark desaturated blue */
+    --foreground: 180 100% 95%; /* Bright cyan */
+    --card: 233 30% 14%;
+    --card-foreground: 180 100% 95%;
+    --popover: 233 30% 12%;
+    --popover-foreground: 180 100% 95%;
+    --primary: 320 100% 50%; /* Bright magenta/pink */
+    --primary-foreground: 0 0% 100%; /* White */
+    --secondary: 180 98% 33%; /* Darker cyan */
+    --secondary-foreground: 0 0% 100%;
+    --muted: 233 30% 20%;
+    --muted-foreground: 233 20% 65%;
+    --accent: 180 100% 50%; /* Bright cyan */
+    --accent-foreground: 233 36% 10%; /* Dark blue for contrast */
+    --destructive: 0 100% 50%; /* Bright red */
+    --destructive-foreground: 0 0% 100%;
+    --border: 180 98% 33%; /* Darker cyan for borders */
+    --input: 233 30% 20%;
+    --ring: 320 100% 50%; /* Magenta for rings */
+    --chart-1: 320 100% 50%;
+    --chart-2: 180 100% 50%;
+    --chart-3: 60 100% 50%;
+    --chart-4: 280 100% 55%;
+    --chart-5: 0 100% 50%;
+    --sidebar-background: 233 36% 10%;
+    --sidebar-foreground: 180 100% 95%;
+    --sidebar-primary: 320 100% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 233 30% 14%;
+    --sidebar-accent-foreground: 180 100% 95%;
+    --sidebar-border: 180 98% 33%;
+    --sidebar-ring: 320 100% 50%;
+  }
 }
 
 @layer base {
