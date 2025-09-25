@@ -88,8 +88,8 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
         const updatedCard = { ...editedCard, checklists: formattedChecklists };
         setEditedCard(updatedCard);
         onUpdate(updatedCard); // Propagate the change up to the board
-    } catch (error: any) {
-        toast({
+    } catch (error: any)
+{        toast({
             variant: "destructive",
             title: "Failed to refresh task details",
             description: error.message,
@@ -313,9 +313,9 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
         <DialogHeader>
           <DialogTitle>Edit Card</DialogTitle>
         </DialogHeader>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-4 py-4">
+        <div className="grid grid-cols-1 md:grid-cols-9 gap-x-8 gap-y-4 py-4">
           {/* Main Content Column */}
-          <div className="md:col-span-2 space-y-4">
+          <div className="md:col-span-5 space-y-4">
             <div className="space-y-2">
               <Label htmlFor="title">Title</Label>
               <Input
@@ -391,7 +391,7 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
           </div>
 
           {/* Sidebar Column */}
-          <div className="md:col-span-1 space-y-4">
+          <div className="md:col-span-4 space-y-4">
             <div className="space-y-2">
                 <Label htmlFor="dueDate">Due Date</Label>
                 <Input
