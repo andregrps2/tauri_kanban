@@ -207,7 +207,7 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
     setPendingItems({}); // Clear the queue
     await refreshTaskState(); // Refresh with all new items and correct IDs
 
-  }, [pendingItems, editedCard.checklists, onUpdate, toast]);
+  }, [pendingItems, editedCard.checklists, toast]);
   
   const handleAddChecklistItem = (checklistId: string) => {
     const text = newChecklistItem[checklistId]?.trim();
@@ -460,9 +460,7 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
                                     {new Date(comment.timestamp).toLocaleString()}
                                 </p>
                               </div>
-                              <div className="text-sm p-2 bg-muted/50 rounded-md mt-1">
-                                <p className="whitespace-pre-wrap">{comment.text}</p>
-                              </div>
+                              <p className="text-sm whitespace-pre-wrap mt-1">{comment.text}</p>
                           </div>
                       </div>
                   ))}
