@@ -31,6 +31,7 @@ import { Badge } from "../ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { Checkbox } from "../ui/checkbox";
 import { Progress } from "../ui/progress";
+import { MultiSelect } from "../ui/multi-select";
 
 const colorClasses = [
   "bg-red-500", "bg-orange-500", "bg-yellow-500", "bg-green-500",
@@ -64,14 +65,9 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
     onSave(editedCard);
   };
 
-  const handleToggleLabel = (label: LabelData) => {
-    const cardLabels = editedCard.labels || [];
-    const isSelected = cardLabels.some(l => l.id === label.id);
-    if (isSelected) {
-      setEditedCard({ ...editedCard, labels: cardLabels.filter(l => l.id !== label.id) });
-    } else {
-      setEditedCard({ ...editedCard, labels: [...cardLabels, label] });
-    }
+  const handleLabelSelect = (selectedLabelIds: string[]) => {
+    const selectedLabels = allLabels.filter(label => selectedLabelIds.includes(label.id));
+    setEditedCard({ ...editedCard, labels: selectedLabels });
   };
   
   const handleCreateLabel = () => {
@@ -296,53 +292,44 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
             </div>
             <div className="space-y-2">
               <Label>Labels</Label>
-              <div className="min-h-[2.5rem] w-full rounded-md border border-input px-3 py-2 text-sm flex flex-wrap gap-1 items-center">
-                {editedCard.labels?.map(label => (
-                  <Badge key={label.id} className={`${label.color} text-white`}>
-                    {label.name}
-                  </Badge>
-                ))}
-                 {(!editedCard.labels || editedCard.labels.length === 0) && (
-                    <span className="text-muted-foreground text-xs">No labels</span>
-                )}
-              </div>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" size="sm"><Plus className="h-4 w-4 mr-2"/>Manage Labels</Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-64 p-2">
-                  <div className="text-sm font-medium mb-2 text-center">Labels</div>
-                  <div className="space-y-1">
-                    {allLabels.map(label => {
-                      const isSelected = editedCard.labels?.some(l => l.id === label.id);
-                      return (
-                        <div key={label.id} className="flex items-center justify-between">
-                            <div className="flex items-center gap-2 cursor-pointer" onClick={() => handleToggleLabel(label)}>
-                                {isSelected ? <Check className="h-4 w-4" /> : <div className="w-4 h-4"/>}
-                                <Badge className={`${label.color} text-white`}>{label.name}</Badge>
-                            </div>
-                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleDeleteLabel(label.id)}>
-                                <X className="h-4 w-4 text-muted-foreground"/>
-                            </Button>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <hr className="my-2"/>
-                  <div className="space-y-2">
-                    <div className="text-sm font-medium">Create new label</div>
-                    <Input placeholder="Label name" value={newLabelName} onChange={e => setNewLabelName(e.target.value)} />
-                    <div className="grid grid-cols-5 gap-1">
-                        {colorClasses.map(color => (
-                            <button key={color} onClick={() => setNewLabelColor(color)} className={`h-6 w-6 rounded-full ${color} flex items-center justify-center`}>
-                                {newLabelColor === color && <Check className="h-4 w-4 text-white"/>}
-                            </button>
+              <MultiSelect
+                options={allLabels.map(l => ({ value: l.id, label: l.name }))}
+                onValueChange={handleLabelSelect}
+                defaultValue={editedCard.labels?.map(l => l.id) || []}
+                placeholder="Select labels..."
+              >
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="ghost" size="sm" className="w-full justify-start"><Plus className="h-4 w-4 mr-2"/>Manage Labels</Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-64 p-2">
+                      <div className="text-sm font-medium mb-2 text-center">Labels</div>
+                      <div className="space-y-1">
+                        {allLabels.map(label => (
+                          <div key={label.id} className="flex items-center justify-between">
+                              <Badge className={`${label.color} text-white`}>{label.name}</Badge>
+                               <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleDeleteLabel(label.id)}>
+                                  <X className="h-4 w-4 text-muted-foreground"/>
+                              </Button>
+                          </div>
                         ))}
-                    </div>
-                    <Button size="sm" className="w-full bg-accent text-accent-foreground hover:bg-accent/90" onClick={handleCreateLabel}>Create</Button>
-                  </div>
-                </PopoverContent>
-              </Popover>
+                      </div>
+                      <hr className="my-2"/>
+                      <div className="space-y-2">
+                        <div className="text-sm font-medium">Create new label</div>
+                        <Input placeholder="Label name" value={newLabelName} onChange={e => setNewLabelName(e.target.value)} />
+                        <div className="grid grid-cols-5 gap-1">
+                            {colorClasses.map(color => (
+                                <button key={color} onClick={() => setNewLabelColor(color)} className={`h-6 w-6 rounded-full ${color} flex items-center justify-center`}>
+                                    {newLabelColor === color && <Check className="h-4 w-4 text-white"/>}
+                                </button>
+                            ))}
+                        </div>
+                        <Button size="sm" className="w-full bg-accent text-accent-foreground hover:bg-accent/90" onClick={handleCreateLabel}>Create</Button>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+              </MultiSelect>
             </div>
           </div>
         </div>
