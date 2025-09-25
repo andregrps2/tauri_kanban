@@ -3,6 +3,7 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/components/theme-provider';
 import FallingLeaves from '@/components/FallingLeaves';
+import FallingRain from '@/components/FallingRain';
 
 export const metadata: Metadata = {
   title: 'Tauri Kanban Board',
@@ -29,6 +30,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <FallingLeaves />
+          <FallingRain />
           {children}
           <Toaster />
         </ThemeProvider>
