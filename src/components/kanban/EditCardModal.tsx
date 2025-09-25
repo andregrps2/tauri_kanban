@@ -63,10 +63,18 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
 
   const [pendingItems, setPendingItems] = useState<Record<string, string[]>>({});
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+  const commentsContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setEditedCard(card);
   }, [card]);
+
+  useEffect(() => {
+    if (commentsContainerRef.current) {
+      commentsContainerRef.current.scrollTop = commentsContainerRef.current.scrollHeight;
+    }
+  }, [editedCard.comments]);
+
 
   const handleSave = () => {
     onSave(editedCard);
@@ -444,7 +452,7 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
             </div>
             <div className="space-y-4 flex flex-col flex-grow min-h-0">
               <Label>Comments</Label>
-              <div className="space-y-3 flex-grow overflow-y-auto pr-2 border rounded-md p-3 mt-2 max-h-96">
+              <div ref={commentsContainerRef} className="space-y-3 flex-grow overflow-y-auto pr-2 border rounded-md p-3 mt-2 max-h-96">
                   {editedCard.comments?.map(comment => (
                       <div key={comment.id} className="flex items-start space-x-3">
                           <Avatar className="h-8 w-8">
@@ -457,10 +465,10 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
                               <div>
                                 <span className="font-semibold text-sm">{comment.user.username}</span>
                                 <span className="text-xs text-muted-foreground ml-2">
-                                    {new Date(comment.timestamp).toLocaleDateString(undefined, {
-                                        year: 'numeric', month: 'numeric', day: 'numeric',
-                                        hour: '2-digit', minute: '2-digit'
-                                    })}
+                                  {new Date(comment.timestamp).toLocaleString(undefined, {
+                                      year: 'numeric', month: 'numeric', day: 'numeric',
+                                      hour: '2-digit', minute: '2-digit'
+                                  })}
                                 </span>
                               </div>
                               <p className="text-sm whitespace-pre-wrap mt-1">{comment.text}</p>
