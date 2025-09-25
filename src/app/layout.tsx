@@ -29,7 +29,6 @@ export default function RootLayout({
           defaultTheme="dark"
           enableSystem
           disableTransitionOnChange
-          themes={['light', 'dark', 'cyberpunk', 'lofi-september', 'lofi-dark-japanese']}
         >
           <FallingLeaves />
           <FallingRain />
