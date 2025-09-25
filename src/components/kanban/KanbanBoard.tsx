@@ -1,6 +1,6 @@
 "use client";
 
-import type { ColumnData, CardData } from "@/lib/types";
+import type { ColumnData, CardData, LabelData } from "@/lib/types";
 import { useEffect, useState } from "react";
 import KanbanColumn from "./KanbanColumn";
 import EditCardModal from "./EditCardModal";
@@ -14,28 +14,37 @@ const defaultColumns: ColumnData[] = [
     id: "col-1",
     title: "To Do",
     cards: [
-      { id: "card-1", title: "Design the UI", description: "Create mockups and wireframes in Figma." },
-      { id: "card-2", title: "Develop the Kanban board component", description: "Use Next.js and shadcn/ui." },
+      { id: "card-1", title: "Design the UI", description: "Create mockups and wireframes in Figma.", labels: [{id: 'label-1', name: 'Design', color: 'bg-purple-500'}] },
+      { id: "card-2", title: "Develop the Kanban board component", description: "Use Next.js and shadcn/ui.", labels: [{id: 'label-2', name: 'Dev', color: 'bg-blue-500'}] },
     ],
   },
   {
     id: "col-2",
     title: "In Progress",
     cards: [
-      { id: "card-3", title: "Implement drag and drop functionality", description: "Use HTML5 Drag and Drop API." },
+      { id: "card-3", title: "Implement drag and drop functionality", description: "Use HTML5 Drag and Drop API.", labels: [{id: 'label-2', name: 'Dev', color: 'bg-blue-500'}] },
     ],
   },
   {
     id: "col-3",
     title: "Done",
     cards: [
-       { id: "card-4", title: "Set up Next.js project", description: "Initialize with create-next-app." },
+       { id: "card-4", title: "Set up Next.js project", description: "Initialize with create-next-app.", labels: [] },
     ],
   },
 ];
 
+const defaultLabels: LabelData[] = [
+  { id: "label-1", name: "Design", color: "bg-purple-500" },
+  { id: "label-2", name: "Dev", color: "bg-blue-500" },
+  { id: "label-3", name: "Bug", color: "bg-red-500" },
+  { id: "label-4", name: "Feature", color: "bg-green-500" },
+];
+
+
 export default function KanbanBoard() {
   const [columns, setColumns] = useState<ColumnData[]>([]);
+  const [labels, setLabels] = useState<LabelData[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [newColumnName, setNewColumnName] = useState("");
   const [editingCard, setEditingCard] = useState<CardData | null>(null);
@@ -43,14 +52,21 @@ export default function KanbanBoard() {
   useEffect(() => {
     try {
       const savedBoard = localStorage.getItem('kanbanBoard');
+      const savedLabels = localStorage.getItem('kanbanLabels');
       if (savedBoard) {
         setColumns(JSON.parse(savedBoard));
       } else {
         setColumns(defaultColumns);
       }
+      if (savedLabels) {
+        setLabels(JSON.parse(savedLabels));
+      } else {
+        setLabels(defaultLabels);
+      }
     } catch (error) {
-      console.error("Failed to parse board data from localStorage", error);
+      console.error("Failed to parse data from localStorage", error);
       setColumns(defaultColumns);
+      setLabels(defaultLabels);
     }
     setIsLoaded(true);
   }, []);
@@ -58,8 +74,9 @@ export default function KanbanBoard() {
   useEffect(() => {
     if (isLoaded) {
       localStorage.setItem('kanbanBoard', JSON.stringify(columns));
+      localStorage.setItem('kanbanLabels', JSON.stringify(labels));
     }
-  }, [columns, isLoaded]);
+  }, [columns, labels, isLoaded]);
 
   const handleAddColumn = () => {
     if (newColumnName.trim() === "") return;
@@ -81,6 +98,7 @@ export default function KanbanBoard() {
       id: `card-${crypto.randomUUID()}`,
       title: cardTitle,
       description: "",
+      labels: [],
     };
     const newColumns = columns.map((col) => {
       if (col.id === columnId) {
@@ -188,6 +206,8 @@ export default function KanbanBoard() {
       {editingCard && (
         <EditCardModal
           card={editingCard}
+          allLabels={labels}
+          setAllLabels={setLabels}
           isOpen={!!editingCard}
           onClose={() => setEditingCard(null)}
           onSave={handleUpdateCard}
