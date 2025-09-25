@@ -30,13 +30,18 @@ async function fetchClickUpAPI(endpoint: string, options: RequestInit = {}) {
   const response = await fetch(`${API_BASE_URL}${endpoint}`, { ...options, headers });
 
   if (!response.ok) {
-    const errorData = await response.json();
-    console.error("ClickUp API Error:", errorData);
-    throw new Error(errorData.err || `HTTP error! status: ${response.status}`);
+    try {
+      const errorData = await response.json();
+      console.error("ClickUp API Error:", errorData);
+      throw new Error(errorData.err || `HTTP error! status: ${response.status}`);
+    } catch (e) {
+      // If response is not JSON, or some other error occurs
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
   }
 
-  // For DELETE requests which might not have a body
-  if (response.status === 204) {
+  // For requests like DELETE which might not have a body
+  if (response.status === 204 || response.headers.get('Content-Length') === '0') {
     return;
   }
   
