@@ -46,7 +46,15 @@ export default function KanbanBoard() {
             color: 'bg-gray-500' // ClickUp API doesn't provide tag colors here
           })),
           comments: [], // Comments would need a separate fetch
-          checklists: [], // Checklists would need a separate fetch
+          checklists: (task.checklists || []).map((c: any) => ({
+            id: c.id,
+            title: c.name,
+            items: c.items.map((i: any) => ({
+              id: i.id,
+              text: i.name,
+              completed: i.resolved,
+            })).sort((a:any, b:any) => a.orderindex - b.orderindex),
+          })),
         }));
 
         // Distribute cards into their respective columns
@@ -83,10 +91,7 @@ export default function KanbanBoard() {
     try {
       setEditingCard(card);
       
-      const [comments, checklists] = await Promise.all([
-        ClickUpService.getTaskComments(card.id),
-        ClickUpService.getChecklists(card.id)
-      ]);
+      const comments = await ClickUpService.getTaskComments(card.id);
 
       const formattedComments = comments.map((c: any) => ({
         id: c.id,
@@ -94,17 +99,7 @@ export default function KanbanBoard() {
         timestamp: new Date(parseInt(c.date)).toISOString(),
       })).sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
       
-      const formattedChecklists = checklists.map((c: any) => ({
-        id: c.id,
-        title: c.name,
-        items: c.items.map((i: any) => ({
-          id: i.id,
-          text: i.name,
-          completed: i.resolved,
-        })).sort((a:any, b:any) => a.orderindex - b.orderindex),
-      }));
-
-      const updatedCard = { ...card, comments: formattedComments, checklists: formattedChecklists };
+      const updatedCard = { ...card, comments: formattedComments };
       setEditingCard(updatedCard);
       
       const newColumns = columns.map(col => ({

@@ -106,7 +106,7 @@ export async function createTaskComment(taskId: string, commentText: string) {
 // --- Checklist Functions ---
 
 export async function getChecklists(taskId: string) {
-  const data = await fetchClickUpAPI(`/task/${taskId}/checklist`);
+  const data = await fetchClickUpAPI(`/task/${taskId}`);
   return data.checklists || [];
 }
 
