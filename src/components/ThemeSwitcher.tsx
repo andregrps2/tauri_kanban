@@ -24,7 +24,7 @@ export default function ThemeSwitcher() {
       <RadioGroup
         value={theme}
         onValueChange={setTheme}
-        className="grid max-w-md grid-cols-2 gap-8 pt-2"
+        className="grid grid-cols-2 md:grid-cols-3 gap-8 pt-2"
       >
         <Label className="[&:has([data-state=checked])>div]:border-primary">
           <RadioGroupItem value="light" className="sr-only" />

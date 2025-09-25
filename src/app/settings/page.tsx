@@ -44,7 +44,7 @@ export default function SettingsPage() {
           </h1>
         </header>
         <main className="flex-grow overflow-auto p-6">
-          <div className="max-w-md mx-auto space-y-8">
+          <div className="max-w-2xl mx-auto space-y-8">
             <div>
               <h2 className="text-xl font-semibold mb-4">Appearance</h2>
               <div className="p-4 border rounded-lg">
