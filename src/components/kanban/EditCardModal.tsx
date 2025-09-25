@@ -113,59 +113,104 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
     }
   };
 
-  const handleAddChecklist = () => {
+  const handleAddChecklist = async () => {
     if (newChecklistTitle.trim() === "") return;
-    const newChecklist: ChecklistData = {
-      id: `checklist-${crypto.randomUUID()}`,
-      title: newChecklistTitle,
-      items: [],
-    };
-    setEditedCard({ ...editedCard, checklists: [...(editedCard.checklists || []), newChecklist]});
-    setNewChecklistTitle("");
+    try {
+      const { checklist } = await ClickUpService.createChecklist(editedCard.id, newChecklistTitle);
+      const newChecklist: ChecklistData = {
+        id: checklist.id,
+        title: checklist.name,
+        items: [],
+      };
+      setEditedCard({ ...editedCard, checklists: [...(editedCard.checklists || []), newChecklist]});
+      setNewChecklistTitle("");
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Failed to add checklist",
+        description: error.message,
+      });
+    }
   };
 
-  const handleDeleteChecklist = (checklistId: string) => {
-    setEditedCard({ ...editedCard, checklists: editedCard.checklists?.filter(c => c.id !== checklistId) });
+  const handleDeleteChecklist = async (checklistId: string) => {
+    try {
+      await ClickUpService.deleteChecklist(checklistId);
+      setEditedCard({ ...editedCard, checklists: editedCard.checklists?.filter(c => c.id !== checklistId) });
+    } catch (error: any) {
+       toast({
+        variant: "destructive",
+        title: "Failed to delete checklist",
+        description: error.message,
+      });
+    }
   };
 
-  const handleAddChecklistItem = (checklistId: string) => {
+  const handleAddChecklistItem = async (checklistId: string) => {
     const text = newChecklistItem[checklistId]?.trim();
     if (!text) return;
-    const newItem: ChecklistItemData = {
-      id: `item-${crypto.randomUUID()}`,
-      text,
-      completed: false,
-    };
-    const updatedChecklists = editedCard.checklists?.map(c => 
-      c.id === checklistId ? { ...c, items: [...c.items, newItem] } : c
-    );
-    setEditedCard({ ...editedCard, checklists: updatedChecklists });
-    setNewChecklistItem({ ...newChecklistItem, [checklistId]: "" });
+    try {
+      const { item } = await ClickUpService.createChecklistItem(checklistId, text);
+      const newItem: ChecklistItemData = {
+        id: item.id,
+        text: item.name,
+        completed: false,
+      };
+      const updatedChecklists = editedCard.checklists?.map(c => 
+        c.id === checklistId ? { ...c, items: [...c.items, newItem] } : c
+      );
+      setEditedCard({ ...editedCard, checklists: updatedChecklists });
+      setNewChecklistItem({ ...newChecklistItem, [checklistId]: "" });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Failed to add checklist item",
+        description: error.message,
+      });
+    }
   };
 
-  const handleToggleChecklistItem = (checklistId: string, itemId: string) => {
-    const updatedChecklists = editedCard.checklists?.map(c => {
-      if (c.id === checklistId) {
-        return {
-          ...c,
-          items: c.items.map(item => 
-            item.id === itemId ? { ...item, completed: !item.completed } : item
-          )
-        };
-      }
-      return c;
-    });
-    setEditedCard({ ...editedCard, checklists: updatedChecklists });
+  const handleToggleChecklistItem = async (checklistId: string, itemId: string, currentStatus: boolean) => {
+    try {
+      await ClickUpService.updateChecklistItem(checklistId, itemId, { resolved: !currentStatus });
+      const updatedChecklists = editedCard.checklists?.map(c => {
+        if (c.id === checklistId) {
+          return {
+            ...c,
+            items: c.items.map(item => 
+              item.id === itemId ? { ...item, completed: !item.completed } : item
+            )
+          };
+        }
+        return c;
+      });
+      setEditedCard({ ...editedCard, checklists: updatedChecklists });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Failed to update checklist item",
+        description: error.message,
+      });
+    }
   };
 
-  const handleDeleteChecklistItem = (checklistId: string, itemId: string) => {
-     const updatedChecklists = editedCard.checklists?.map(c => {
-      if (c.id === checklistId) {
-        return { ...c, items: c.items.filter(item => item.id !== itemId) };
-      }
-      return c;
-    });
-    setEditedCard({ ...editedCard, checklists: updatedChecklists });
+  const handleDeleteChecklistItem = async (checklistId: string, itemId: string) => {
+    try {
+      await ClickUpService.deleteChecklistItem(checklistId, itemId);
+      const updatedChecklists = editedCard.checklists?.map(c => {
+        if (c.id === checklistId) {
+          return { ...c, items: c.items.filter(item => item.id !== itemId) };
+        }
+        return c;
+      });
+      setEditedCard({ ...editedCard, checklists: updatedChecklists });
+    } catch (error: any) {
+       toast({
+        variant: "destructive",
+        title: "Failed to delete checklist item",
+        description: error.message,
+      });
+    }
   };
 
   return (
@@ -256,7 +301,7 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
                         <div className="space-y-1 pl-2">
                           {checklist.items.map(item => (
                             <div key={item.id} className="flex items-center gap-2 group">
-                              <Checkbox id={item.id} checked={item.completed} onCheckedChange={() => handleToggleChecklistItem(checklist.id, item.id)} />
+                              <Checkbox id={item.id} checked={item.completed} onCheckedChange={() => handleToggleChecklistItem(checklist.id, item.id, item.completed)} />
                               <label htmlFor={item.id} className="flex-grow text-sm data-[completed=true]:line-through data-[completed=true]:text-muted-foreground" data-completed={item.completed}>{item.text}</label>
                               <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={() => handleDeleteChecklistItem(checklist.id, item.id)}>
                                 <X className="h-4 w-4 text-muted-foreground"/>

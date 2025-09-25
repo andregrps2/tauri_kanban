@@ -81,18 +81,30 @@ export default function KanbanBoard() {
 
   const handleCardClick = async (card: CardData) => {
     try {
-      // Show card immediately with existing data
       setEditingCard(card);
-      // Fetch and add comments
-      const comments = await ClickUpService.getTaskComments(card.id);
+      
+      const [comments, checklists] = await Promise.all([
+        ClickUpService.getTaskComments(card.id),
+        ClickUpService.getChecklists(card.id)
+      ]);
+
       const formattedComments = comments.map((c: any) => ({
         id: c.id,
         text: c.comment_text,
         timestamp: new Date(parseInt(c.date)).toISOString(),
       })).sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      
+      const formattedChecklists = checklists.map((c: any) => ({
+        id: c.id,
+        title: c.name,
+        items: c.items.map((i: any) => ({
+          id: i.id,
+          text: i.name,
+          completed: i.resolved,
+        })).sort((a:any, b:any) => a.orderindex - b.orderindex),
+      }));
 
-      // We need to update the card in the columns state as well to reflect the new comments count
-      const updatedCard = { ...card, comments: formattedComments };
+      const updatedCard = { ...card, comments: formattedComments, checklists: formattedChecklists };
       setEditingCard(updatedCard);
       
       const newColumns = columns.map(col => ({
@@ -104,7 +116,7 @@ export default function KanbanBoard() {
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Failed to load comments",
+        title: "Failed to load card details",
         description: error.message,
       });
     }

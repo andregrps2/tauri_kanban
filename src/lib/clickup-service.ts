@@ -97,3 +97,43 @@ export async function createTaskComment(taskId: string, commentText: string) {
         body: JSON.stringify({ comment_text: commentText }),
     });
 }
+
+// --- Checklist Functions ---
+
+export async function getChecklists(taskId: string) {
+  const data = await fetchClickUpAPI(`/task/${taskId}/checklist`);
+  return data.checklists || [];
+}
+
+export async function createChecklist(taskId: string, name: string) {
+  return fetchClickUpAPI(`/task/${taskId}/checklist`, {
+    method: 'POST',
+    body: JSON.stringify({ name }),
+  });
+}
+
+export async function deleteChecklist(checklistId: string) {
+  return fetchClickUpAPI(`/checklist/${checklistId}`, {
+    method: 'DELETE',
+  });
+}
+
+export async function createChecklistItem(checklistId: string, name: string) {
+  return fetchClickUpAPI(`/checklist/${checklistId}/checklist_item`, {
+    method: 'POST',
+    body: JSON.stringify({ name }),
+  });
+}
+
+export async function updateChecklistItem(checklistId: string, checklistItemId: string, data: { name?: string, resolved?: boolean }) {
+  return fetchClickUpAPI(`/checklist/${checklistId}/checklist_item/${checklistItemId}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteChecklistItem(checklistId: string, checklistItemId: string) {
+  return fetchClickUpAPI(`/checklist/${checklistId}/checklist_item/${checklistItemId}`, {
+    method: 'DELETE',
+  });
+}
