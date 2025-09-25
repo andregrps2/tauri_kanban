@@ -116,10 +116,10 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
   const handleAddChecklist = async () => {
     if (newChecklistTitle.trim() === "") return;
     try {
-      const checklist = await ClickUpService.createChecklist(editedCard.id, newChecklistTitle);
+      const createdChecklist = await ClickUpService.createChecklist(editedCard.id, newChecklistTitle);
       const newChecklist: ChecklistData = {
-        id: checklist.id,
-        title: checklist.name,
+        id: createdChecklist.id,
+        title: createdChecklist.name,
         items: [],
       };
       setEditedCard({ ...editedCard, checklists: [...(editedCard.checklists || []), newChecklist]});
@@ -150,10 +150,16 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
     const text = newChecklistItem[checklistId]?.trim();
     if (!text) return;
     try {
-      const item = await ClickUpService.createChecklistItem(checklistId, text);
+      const response = await ClickUpService.createChecklistItem(checklistId, text);
+      const createdItem = response.item;
+
+      if (!createdItem || !createdItem.id) {
+         throw new Error(`Invalid response from API: ${JSON.stringify(response)}`);
+      }
+
       const newItem: ChecklistItemData = {
-        id: item.id,
-        text: item.name,
+        id: createdItem.id,
+        text: createdItem.name,
         completed: false,
       };
       const updatedChecklists = editedCard.checklists?.map(c => 
