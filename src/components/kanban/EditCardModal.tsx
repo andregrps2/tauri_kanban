@@ -116,8 +116,7 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
   const handleAddChecklist = async () => {
     if (newChecklistTitle.trim() === "") return;
     try {
-      const response = await ClickUpService.createChecklist(editedCard.id, newChecklistTitle);
-      const checklist = response.checklist;
+      const checklist = await ClickUpService.createChecklist(editedCard.id, newChecklistTitle);
       const newChecklist: ChecklistData = {
         id: checklist.id,
         title: checklist.name,
