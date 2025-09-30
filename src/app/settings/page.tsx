@@ -64,21 +64,23 @@ export default function SettingsPage() {
               <AccordionItem value="item-1" className="border-b-0">
                 <div className="p-4 border rounded-lg space-y-4">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-semibold">
-                      API Configuration
-                    </h2>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <AccordionTrigger>
-                            <HelpCircle className="h-5 w-5" />
-                          </AccordionTrigger>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>How to get your credentials</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-xl font-semibold">
+                        API Configuration
+                      </h2>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <AccordionTrigger>
+                              <HelpCircle className="h-5 w-5" />
+                            </AccordionTrigger>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>How to get your credentials</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
                   </div>
 
                   <p className="text-sm text-muted-foreground">
