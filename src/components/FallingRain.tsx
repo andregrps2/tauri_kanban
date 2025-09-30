@@ -39,7 +39,7 @@ export default function FallingRain() {
     }
   }, []);
 
-  if (!mounted || theme !== 'lofi-dark-japanese') {
+  if (!mounted || theme !== 'lofi-dark-september') {
     return null;
   }
 
@@ -51,3 +51,5 @@ export default function FallingRain() {
     </div>
   );
 }
+
+    

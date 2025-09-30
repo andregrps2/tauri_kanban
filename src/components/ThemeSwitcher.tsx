@@ -121,7 +121,7 @@ export default function ThemeSwitcher() {
           </span>
         </Label>
         <Label className="[&:has([data-state=checked])>div]:border-primary">
-          <RadioGroupItem value="lofi-dark-japanese" className="sr-only" />
+          <RadioGroupItem value="lofi-dark-september" className="sr-only" />
           <div className="items-center rounded-md border-2 border-muted bg-[#1e1e2e] p-1 hover:border-accent hover:text-accent-foreground">
             <div className="space-y-2 rounded-sm bg-[#11111b] p-2">
               <div className="space-y-2 rounded-md bg-[#28283d] p-2 shadow-sm">
@@ -139,10 +139,12 @@ export default function ThemeSwitcher() {
             </div>
           </div>
           <span className="block w-full p-2 text-center font-normal">
-            Lofi Dark Japanese
+            Lofi Dark September
           </span>
         </Label>
       </RadioGroup>
     </div>
   );
 }
+
+    

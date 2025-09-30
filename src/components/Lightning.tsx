@@ -14,7 +14,7 @@ export default function Lightning() {
   }, []);
 
   useEffect(() => {
-    if (mounted && theme === 'lofi-dark-japanese') {
+    if (mounted && theme === 'lofi-dark-september') {
       const scheduleFlash = () => {
         const delay = Math.random() * 15000 + 5000; // 5 to 20 seconds
         setTimeout(() => {
@@ -30,7 +30,7 @@ export default function Lightning() {
     }
   }, [mounted, theme]);
 
-  if (!mounted || theme !== 'lofi-dark-japanese') {
+  if (!mounted || theme !== 'lofi-dark-september') {
     return null;
   }
 
@@ -44,3 +44,5 @@ export default function Lightning() {
     ></div>
   );
 }
+
+    
