@@ -7,7 +7,7 @@ import FallingRain from '@/components/FallingRain';
 import Lightning from '@/components/Lightning';
 
 export const metadata: Metadata = {
-  title: 'Tauri Kanban Board',
+  title: 'Tauri Kanban',
   description: 'A Kanban board application created with Next.js',
 };
 
