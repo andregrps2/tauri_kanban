@@ -47,7 +47,7 @@ const colorClasses = [
 interface EditCardModalProps {
   card: CardData;
   allLabels: LabelData[];
-  setAllLabels: (labels: LabelData[]) => void;
+  setAllLabels: (labels: LabelData[] | ((prevLabels: LabelData[]) => LabelData[])) => void;
   isOpen: boolean;
   onClose: () => void;
   onSave: (card: CardData) => void;
@@ -115,22 +115,38 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
   };
   
   const handleCreateLabel = () => {
-    if (newLabelName.trim() === "") return;
+    if (newLabelName.trim() === "" || allLabels.some(l => l.name.toLowerCase() === newLabelName.trim().toLowerCase())) {
+        if(allLabels.some(l => l.name.toLowerCase() === newLabelName.trim().toLowerCase())) {
+            toast({ variant: "destructive", title: "Label already exists" });
+        }
+        return;
+    };
     const newLabel: LabelData = {
-      id: `label-${crypto.randomUUID()}`,
+      id: `custom-${crypto.randomUUID()}`,
       name: newLabelName.trim(),
       color: newLabelColor,
+      isCustom: true,
     };
-    setAllLabels([...allLabels, newLabel]);
+    setAllLabels(prev => [...prev, newLabel]);
+    setEditedCard(prev => ({...prev, labels: [...(prev.labels || []), newLabel]}));
     setNewLabelName("");
     setNewLabelColor(colorClasses[0]);
   };
 
   const handleDeleteLabel = (labelId: string) => {
-    setAllLabels(allLabels.filter(l => l.id !== labelId));
-    // Also remove from any card that has it
-    const updatedCardLabels = editedCard.labels?.filter(l => l.id !== labelId) || [];
-    setEditedCard({...editedCard, labels: updatedCardLabels});
+    const labelToDelete = allLabels.find(l => l.id === labelId);
+    if (labelToDelete && !labelToDelete.isCustom) {
+        toast({
+            variant: "destructive",
+            title: "Cannot delete ClickUp tag",
+            description: "Tags synchronized from ClickUp cannot be deleted from here.",
+        });
+        return;
+    }
+
+    setAllLabels(prev => prev.filter(l => l.id !== labelId));
+    // Also remove from the current card
+    setEditedCard(prev => ({...prev, labels: prev.labels?.filter(l => l.id !== labelId) || []}));
   };
 
   const handleAddComment = async () => {
@@ -442,7 +458,7 @@ export default function EditCardModal({ card, allLabels, setAllLabels, isOpen, o
                       <hr className="my-2"/>
                       <div className="space-y-2">
                         <div className="text-sm font-medium">Create new label</div>
-                        <Input placeholder="Label name" value={newLabelName} onChange={e => setNewLabelName(e.target.value)} />
+                        <Input placeholder="Label name" value={newLabelName} onChange={e => setNewLabelName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleCreateLabel()} />
                         <div className="grid grid-cols-5 gap-1">
                             {colorClasses.map(color => (
                                 <button key={color} onClick={() => setNewLabelColor(color)} className={`h-6 w-6 rounded-full ${color} flex items-center justify-center`}>

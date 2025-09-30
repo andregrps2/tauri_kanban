@@ -9,6 +9,7 @@ export interface LabelData {
   id: string;
   name: string;
   color: string; // e.g., 'bg-red-500', 'bg-blue-500'
+  isCustom?: boolean;
 }
 
 export interface CommentData {

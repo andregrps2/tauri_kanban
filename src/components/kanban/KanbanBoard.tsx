@@ -42,7 +42,8 @@ export default function KanbanBoard() {
           labels: task.tags.map((tag: any) => ({
             id: tag.name, // ClickUp tags don't have a stable ID via this endpoint
             name: tag.name,
-            color: 'bg-gray-500' // ClickUp API doesn't provide tag colors here
+            color: 'bg-gray-500', // ClickUp API doesn't provide tag colors here
+            isCustom: false,
           })),
           comments: [], // Comments would need a separate fetch
           checklists: (task.checklists || []).map((c: any) => ({
@@ -67,15 +68,26 @@ export default function KanbanBoard() {
           col.cards = boardCards.filter(card => card.statusId === col.id);
         });
 
-        // Collect all unique labels
-        const allBoardLabels = boardCards.flatMap(card => card.labels || [])
+        // Collect all unique labels from ClickUp
+        const clickUpLabels = boardCards.flatMap(card => card.labels || [])
           .filter((label, index, self) => 
-            index === self.findIndex((l) => l.id === label.id)
+            index === self.findIndex((l) => l.name.toLowerCase() === label.name.toLowerCase())
           );
+        
+        // Load custom labels from local storage
+        const savedCustomLabels = JSON.parse(localStorage.getItem('custom_labels') || '[]') as LabelData[];
+
+        // Combine and deduplicate
+        const combinedLabels = [...clickUpLabels];
+        savedCustomLabels.forEach(customLabel => {
+          if (!combinedLabels.some(l => l.name.toLowerCase() === customLabel.name.toLowerCase())) {
+            combinedLabels.push(customLabel);
+          }
+        });
 
         setColumns(boardColumns);
         setAllCards(boardCards);
-        setLabels(allBoardLabels);
+        setLabels(combinedLabels);
 
       } catch (error: any) {
         toast({
@@ -91,6 +103,15 @@ export default function KanbanBoard() {
     
     fetchData();
   }, [toast]);
+  
+  const handleSetLabels = (newLabels: LabelData[] | ((prevLabels: LabelData[]) => LabelData[])) => {
+    const updatedLabels = typeof newLabels === 'function' ? newLabels(labels) : newLabels;
+    setLabels(updatedLabels);
+    // Save only custom labels to local storage
+    const customLabels = updatedLabels.filter(l => l.isCustom);
+    localStorage.setItem('custom_labels', JSON.stringify(customLabels));
+  };
+
 
   const handleCardClick = async (card: CardData) => {
     try {
@@ -132,8 +153,26 @@ export default function KanbanBoard() {
         thumbnail_small: att.thumbnail_small,
       }));
 
+      // Combine existing card labels with freshly fetched ones if needed
+      // For now, we trust the card object passed in has the correct labels
+      const currentLabels = card.labels || [];
+      const clickUpTags = (taskDetails.tags || []).map((tag: any) => ({
+            id: tag.name,
+            name: tag.name,
+            color: 'bg-gray-500',
+            isCustom: false
+      }));
+
+      // Merge: Keep custom labels, update with fresh ClickUp labels
+      const customLabelsOnCard = currentLabels.filter(l => l.isCustom);
+      const mergedLabels = [...clickUpTags, ...customLabelsOnCard].filter((label, index, self) =>
+        index === self.findIndex((l) => l.name.toLowerCase() === label.name.toLowerCase())
+      );
+
+
       const updatedCard: CardData = { 
         ...card, 
+        labels: mergedLabels,
         comments: formattedComments,
         checklists: formattedChecklists,
         description: taskDetails.description || "",
@@ -184,7 +223,8 @@ export default function KanbanBoard() {
         labels: (newTask.tags || []).map((tag: any) => ({
           id: tag.name,
           name: tag.name,
-          color: 'bg-gray-500'
+          color: 'bg-gray-500',
+          isCustom: false,
         })),
         comments: [], // Comments are not returned on task creation
         checklists: (newTask.checklists || []),
@@ -222,10 +262,12 @@ export default function KanbanBoard() {
       // Optimistic update for UI responsiveness
       handleCardUpdateFromModal(updatedCard);
       
+      const clickupTags = updatedCard.labels?.filter(l => !l.isCustom).map(l => l.name) || [];
       // API call to update the task details
       await ClickUpService.updateTask(updatedCard.id, {
         name: updatedCard.title,
         description: updatedCard.description,
+        tags: clickupTags
       });
       
       // Close modal after all updates
@@ -366,7 +408,7 @@ export default function KanbanBoard() {
         <EditCardModal
           card={editingCard}
           allLabels={labels}
-          setAllLabels={setLabels}
+          setAllLabels={handleSetLabels}
           isOpen={!!editingCard}
           onClose={() => setEditingCard(null)}
           onSave={handleUpdateCard}
