@@ -63,25 +63,23 @@ export default function SettingsPage() {
             <Accordion type="single" collapsible className="w-full">
               <AccordionItem value="item-1" className="border-b-0">
                 <div className="p-4 border rounded-lg space-y-4">
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-xl font-semibold">
-                            API Configuration
-                        </h2>
-                        <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <AccordionTrigger asChild>
-                                    <Button variant="ghost" size="icon">
-                                        <HelpCircle className="h-5 w-5" />
-                                    </Button>
-                                </AccordionTrigger>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>How to get your credentials</p>
-                            </TooltipContent>
-                        </Tooltip>
-                        </TooltipProvider>
-                    </div>
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-xl font-semibold">
+                      API Configuration
+                    </h2>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <AccordionTrigger>
+                            <HelpCircle className="h-5 w-5" />
+                          </AccordionTrigger>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>How to get your credentials</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
 
                   <p className="text-sm text-muted-foreground">
                     Your ClickUp API credentials are stored securely in your
