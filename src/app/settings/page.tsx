@@ -13,6 +13,13 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import { HelpCircle } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 export default function SettingsPage() {
   const [apiToken, setApiToken] = useState('');
@@ -52,66 +59,105 @@ export default function SettingsPage() {
                 <ThemeSwitcher />
               </div>
             </div>
-            <div>
-              <h2 className="text-xl font-semibold mb-4">
-                API Configuration
-              </h2>
-              <div className="p-4 border rounded-lg space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Your ClickUp API credentials are stored securely in your
-                  browser&apos;s local storage and are never exposed in the code.
-                </p>
-                
-                <Accordion type="single" collapsible className="w-full">
-                  <AccordionItem value="item-1">
-                    <AccordionTrigger>How to get your credentials</AccordionTrigger>
-                    <AccordionContent>
-                      <div className="space-y-4 p-2">
-                        <h4 className="font-semibold">How to get your API Token:</h4>
-                        <ol className="list-decimal list-inside space-y-2 text-sm">
-                          <li>Log in to your ClickUp account.</li>
-                          <li>Click your avatar in the bottom-left corner and select <strong>My Settings</strong>.</li>
-                          <li>In the left sidebar, click on <strong>Apps</strong>.</li>
-                          <li>Under the <strong>API Token</strong> section, click <strong>Generate</strong> to create a new token.</li>
-                          <li>Copy the generated token and paste it below.</li>
-                        </ol>
-                        <hr />
-                        <h4 className="font-semibold">How to get your List ID:</h4>
-                         <ol className="list-decimal list-inside space-y-2 text-sm">
-                          <li>Navigate to the specific List or Board view in ClickUp.</li>
-                          <li>Look at the URL in your browser's address bar.</li>
-                          <li>The URL will look like: <code className="text-xs bg-muted p-1 rounded">https://app.clickup.com/123456/v/li/<strong>987654321</strong></code></li>
-                          <li>The long number at the very end is your <strong>List ID</strong>. Copy and paste it below.</li>
-                        </ol>
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion>
 
-                <div className="space-y-2 pt-4">
-                  <Label htmlFor="api-token">ClickUp API Token</Label>
-                  <Input
-                    id="api-token"
-                    type="password"
-                    value={apiToken}
-                    onChange={(e) => setApiToken(e.target.value)}
-                    placeholder="Enter your ClickUp API token"
-                  />
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="item-1" className="border-b-0">
+                <div className="p-4 border rounded-lg space-y-4">
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-xl font-semibold">
+                            API Configuration
+                        </h2>
+                        <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <AccordionTrigger asChild>
+                                    <Button variant="ghost" size="icon">
+                                        <HelpCircle className="h-5 w-5" />
+                                    </Button>
+                                </AccordionTrigger>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>How to get your credentials</p>
+                            </TooltipContent>
+                        </Tooltip>
+                        </TooltipProvider>
+                    </div>
+
+                  <p className="text-sm text-muted-foreground">
+                    Your ClickUp API credentials are stored securely in your
+                    browser&apos;s local storage and are never exposed in the code.
+                  </p>
+
+                  <AccordionContent>
+                    <div className="space-y-4 p-2 border-t pt-4">
+                      <h4 className="font-semibold">How to get your API Token:</h4>
+                      <ol className="list-decimal list-inside space-y-2 text-sm">
+                        <li>Log in to your ClickUp account.</li>
+                        <li>
+                          Click your avatar in the bottom-left corner and select{' '}
+                          <strong>My Settings</strong>.
+                        </li>
+                        <li>
+                          In the left sidebar, click on <strong>Apps</strong>.
+                        </li>
+                        <li>
+                          Under the <strong>API Token</strong> section, click{' '}
+                          <strong>Generate</strong> to create a new token.
+                        </li>
+                        <li>Copy the generated token and paste it below.</li>
+                      </ol>
+                      <hr />
+                      <h4 className="font-semibold">How to get your List ID:</h4>
+                      <ol className="list-decimal list-inside space-y-2 text-sm">
+                        <li>
+                          Navigate to the specific List or Board view in ClickUp.
+                        </li>
+                        <li>
+                          Look at the URL in your browser&apos;s address bar.
+                        </li>
+                        <li>
+                          The URL will look like:{' '}
+                          <code className="text-xs bg-muted p-1 rounded">
+                            https://app.clickup.com/123456/v/li/
+                            <strong>987654321</strong>
+                          </code>
+                        </li>
+                        <li>
+                          The long number at the very end is your{' '}
+                          <strong>List ID</strong>. Copy and paste it below.
+                        </li>
+                      </ol>
+                    </div>
+                  </AccordionContent>
+
+                  <div className="space-y-2 pt-4">
+                    <Label htmlFor="api-token">ClickUp API Token</Label>
+                    <Input
+                      id="api-token"
+                      type="password"
+                      value={apiToken}
+                      onChange={(e) => setApiToken(e.target.value)}
+                      placeholder="Enter your ClickUp API token"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="list-id">ClickUp List ID</Label>
+                    <Input
+                      id="list-id"
+                      value={listId}
+                      onChange={(e) => setListId(e.target.value)}
+                      placeholder="Enter the ID of your ClickUp list"
+                    />
+                  </div>
+                  <Button
+                    onClick={handleSaveCredentials}
+                    className="bg-accent text-accent-foreground hover:bg-accent/90"
+                  >
+                    Save Credentials
+                  </Button>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="list-id">ClickUp List ID</Label>
-                  <Input
-                    id="list-id"
-                    value={listId}
-                    onChange={(e) => setListId(e.target.value)}
-                    placeholder="Enter the ID of your ClickUp list"
-                  />
-                </div>
-                <Button onClick={handleSaveCredentials} className="bg-accent text-accent-foreground hover:bg-accent/90">
-                  Save Credentials
-                </Button>
-              </div>
-            </div>
+              </AccordionItem>
+            </Accordion>
           </div>
         </main>
       </div>
