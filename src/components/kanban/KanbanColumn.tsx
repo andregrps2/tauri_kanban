@@ -72,7 +72,7 @@ export default function KanbanColumn({
       }}
     >
       <div className="p-4 border-b flex justify-between items-center">
-        <h2 className="text-lg font-semibold">{column.title}</h2>
+        <h2 className="text-lg font-semibold uppercase">{column.title}</h2>
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
