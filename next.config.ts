@@ -1,7 +1,7 @@
-import type {NextConfig} from 'next';
-
-const nextConfig: NextConfig = {
-  /* config options here */
+const nextConfig = {
+  output: 'export', // Gera site estático
+  basePath: process.env.GITHUB_PAGES ? '/tauri_kanban' : '', // Ajusta o caminho base para o GitHub Pages
+  assetPrefix: process.env.GITHUB_PAGES ? '/tauri_kanban/' : '',
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
+    unoptimized: true, // Evita problemas com imagens no export
     remotePatterns: [
       {
         protocol: 'https',
